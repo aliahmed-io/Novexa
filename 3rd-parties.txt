@@ -1,0 +1,13 @@
+shadcn
+kindeauth
+neon
+prisma
+stripe
+lucide
+zod
+Recharts
+Upstach
+conform
+
+
+3:27
