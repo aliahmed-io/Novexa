@@ -1,4 +1,4 @@
-import { deleteBanner } from "@/app/actions";
+import { deleteBanner } from "@/app/store/actions";
 import { SubmitButton } from "@/components/SubmitButtons";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,7 +28,7 @@ export default async function DeleteBannerRoute({
         </CardHeader>
         <CardFooter className="w-full flex justify-between">
           <Button variant="secondary" asChild>
-            <Link href="/dashboard/banner">Cancel</Link>
+            <Link href="/store/dashboard/banner">Cancel</Link>
           </Button>
           <form action={deleteBanner}>
             <input type="hidden" name="bannerId" value={id} />

@@ -7,7 +7,7 @@ import gsap from "gsap";
 import * as THREE from "three";
 
 export function HatModel() {
-    const { scene } = useGLTF("/baseball cap 3d model.glb");
+    const { scene } = useGLTF("/shoes_outdoor-v2.glb");
     const modelRef = useRef<THREE.Group>(null);
 
     useGSAP(() => {
@@ -24,10 +24,10 @@ export function HatModel() {
     return (
         <Center>
             <group ref={modelRef} dispose={null}>
-                <primitive object={scene} scale={2.5} />
+                <primitive object={scene} scale={13.5} />
             </group>
         </Center>
     );
 }
 
-useGLTF.preload("/baseball cap 3d model.glb");
+useGLTF.preload("/shoes_outdoor-v2.glb");

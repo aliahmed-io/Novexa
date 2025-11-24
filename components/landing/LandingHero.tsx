@@ -10,7 +10,7 @@ import { HatModel } from "./HatModel";
 
 export function LandingHero() {
     return (
-        <section className="relative overflow-hidden py-20 lg:py-32">
+        <section className="relative overflow-hidden pt-20 pb-4 lg:pt-24 lg:pb-8">
             <div className="container mx-auto px-4 md:px-6">
                 <div className="flex flex-col items-center text-center space-y-8">
                     <div className="space-y-4 max-w-3xl">
@@ -37,7 +37,7 @@ export function LandingHero() {
                     </div>
 
                     {/* 3D Model Section */}
-                    <div className="w-full max-w-4xl mt-16 relative aspect-square md:aspect-[16/9] lg:aspect-[2/1] bg-transparent flex items-center justify-center overflow-visible z-10">
+                    <div className="w-full max-w-2xl mt-6 relative aspect-square md:aspect-[4/3] lg:aspect-[3/2] bg-transparent flex items-center justify-center overflow-visible z-10">
                         <Canvas className="w-full h-full" camera={{ position: [0, 0, 5], fov: 45 }}>
                             <ambientLight intensity={0.5} />
                             <directionalLight position={[10, 10, 5]} intensity={1} />

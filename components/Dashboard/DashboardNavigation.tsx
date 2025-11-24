@@ -7,19 +7,19 @@ import { usePathname } from "next/navigation";
 const links = [
   {
     name: "Dashboard",
-    href: "/dashboard",
+    href: "/store/dashboard",
   },
   {
     name: "Orders",
-    href: "/dashboard/orders",
+    href: "/store/dashboard/orders",
   },
   {
     name: "Products",
-    href: "/dashboard/products",
+    href: "/store/dashboard/products",
   },
   {
     name: "Banner Picture",
-    href: "/dashboard/banner",
+    href: "/store/dashboard/banner",
   },
 ];
 

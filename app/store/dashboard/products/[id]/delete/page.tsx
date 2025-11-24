@@ -1,4 +1,4 @@
-import { deleteProduct } from "@/app/actions";
+import { deleteProduct } from "@/app/store/actions";
 import { SubmitButton } from "@/components/SubmitButtons";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,7 +24,7 @@ export default async function DeleteRoute({ params }: { params: Promise<{ id: st
         </CardHeader>
         <CardFooter className="w-full flex justify-between">
           <Button variant="secondary" asChild>
-            <Link href="/dashboard/products">Cancel</Link>
+            <Link href="/store/dashboard/products">Cancel</Link>
           </Button>
           <form action={deleteProduct}>
             <input type="hidden" name="productId" value={id} />

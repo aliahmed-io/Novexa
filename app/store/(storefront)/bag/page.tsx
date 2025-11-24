@@ -1,4 +1,3 @@
-import { checkOut, delItem } from "@/app/actions";
 import { ChceckoutButton, DeleteItem } from "@/components/SubmitButtons";
 import { Cart } from "@/lib/interfaces";
 import { redis } from "@/lib/redis";
@@ -10,6 +9,7 @@ import Link from "next/link";
 import { unstable_noStore as noStore } from "next/cache";
 
 import { redirect } from "next/navigation";
+import { checkOut, delItem } from "@/app/store/actions";
 
 export default async function BagRoute() {
   noStore();
@@ -17,7 +17,7 @@ export default async function BagRoute() {
   const user = await getUser();
 
   if (!user) {
-    redirect("/");
+    redirect("/store/shop");
   }
 
   let cart: Cart | null = null;
@@ -52,7 +52,7 @@ export default async function BagRoute() {
           </p>
 
           <Button asChild>
-            <Link href="/">Shop Now!</Link>
+            <Link href="/store/shop">Shop Now!</Link>
           </Button>
         </div>
       ) : (

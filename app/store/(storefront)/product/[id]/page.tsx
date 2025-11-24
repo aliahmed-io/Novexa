@@ -1,4 +1,4 @@
-import { addItem } from "@/app/actions";
+import { addItem } from "@/app/store/actions";
 import { ShoppingBagButton } from "@/components/SubmitButtons";
 import { FeaturedProducts } from "@/components/storefront/FeaturedProducts";
 import { ImageSlider } from "@/components/storefront/ImageSlider";

@@ -15,7 +15,7 @@ export async function createProduct(prevState: unknown, formData: FormData) {
   const user = await getUser();
 
   if (!user || user.email !== "alihassan182006@gmail.com") {
-    return redirect("/");
+    return redirect("/store/shop");
   }
 
   const submission = parseWithZod(formData, {
@@ -42,7 +42,7 @@ export async function createProduct(prevState: unknown, formData: FormData) {
     },
   });
 
-  redirect("/dashboard/products");
+  redirect("/store/dashboard/products");
 }
 
 export async function editProduct(prevState: any, formData: FormData) {
@@ -50,7 +50,7 @@ export async function editProduct(prevState: any, formData: FormData) {
   const user = await getUser();
 
   if (!user || user.email !== "alihassan182006@gmail.com") {
-    return redirect("/");
+    return redirect("/store/shop");
   }
 
   const submission = parseWithZod(formData, {
@@ -81,7 +81,7 @@ export async function editProduct(prevState: any, formData: FormData) {
     },
   });
 
-  redirect("/dashboard/products");
+  redirect("/store/dashboard/products");
 }
 
 export async function deleteProduct(formData: FormData) {
@@ -89,7 +89,7 @@ export async function deleteProduct(formData: FormData) {
   const user = await getUser();
 
   if (!user || user.email !== "alihassan182006@gmail.com") {
-    return redirect("/");
+    return redirect("/store/shop");
   }
 
   await prisma.product.delete({
@@ -98,7 +98,7 @@ export async function deleteProduct(formData: FormData) {
     },
   });
 
-  redirect("/dashboard/products");
+  redirect("/store/dashboard/products");
 }
 
 export async function createBanner(prevState: any, formData: FormData) {
@@ -106,7 +106,7 @@ export async function createBanner(prevState: any, formData: FormData) {
   const user = await getUser();
 
   if (!user || user.email !== "alihassan182006@gmail.com") {
-    return redirect("/");
+    return redirect("/store/shop");
   }
 
   const submission = parseWithZod(formData, {
@@ -133,7 +133,7 @@ export async function createBanner(prevState: any, formData: FormData) {
     })),
   });
 
-  redirect("/dashboard/banner");
+  redirect("/store/dashboard/banner");
 }
 
 export async function deleteBanner(formData: FormData) {
@@ -141,7 +141,7 @@ export async function deleteBanner(formData: FormData) {
   const user = await getUser();
 
   if (!user || user.email !== "alihassan182006@gmail.com") {
-    return redirect("/");
+    return redirect("/store/shop");
   }
 
   await prisma.banner.delete({
@@ -150,7 +150,7 @@ export async function deleteBanner(formData: FormData) {
     },
   });
 
-  redirect("/dashboard/banner");
+  redirect("/store/dashboard/banner");
 }
 
 export async function addItem(productId: string) {
@@ -158,7 +158,7 @@ export async function addItem(productId: string) {
   const user = await getUser();
 
   if (!user) {
-    return redirect("/");
+    return redirect("/store/shop");
   }
 
   let cart: Cart | null = null;
@@ -223,7 +223,7 @@ export async function addItem(productId: string) {
     await redis.set(`cart-${user.id}`, myCart);
   }
 
-  revalidatePath("/", "layout");
+  revalidatePath("/store", "layout");
 }
 
 export async function delItem(formData: FormData) {
@@ -231,7 +231,7 @@ export async function delItem(formData: FormData) {
   const user = await getUser();
 
   if (!user) {
-    return redirect("/");
+    return redirect("/store/shop");
   }
 
   const productId = formData.get("productId");
@@ -251,7 +251,7 @@ export async function delItem(formData: FormData) {
     }
   }
 
-  revalidatePath("/bag");
+  revalidatePath("/store/bag");
 }
 
 export async function checkOut() {
@@ -259,7 +259,7 @@ export async function checkOut() {
   const user = await getUser();
 
   if (!user) {
-    return redirect("/");
+    return redirect("/store/shop");
   }
 
   const cart: Cart | null = redis

@@ -45,7 +45,7 @@ export default async function BannerRoute() {
     <>
       <div className="flex items-center justify-end">
         <Button asChild className="flex gap-x-2">
-          <Link href="/dashboard/banner/create">
+          <Link href="/store/dashboard/banner/create">
             <PlusCircle className="h-3.5 w-3.5" />
             <span>Add Banner</span>
           </Link>
@@ -92,7 +92,7 @@ export default async function BannerRoute() {
                         <DropdownMenuSeparator />
 
                         <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/banner/${item.id}/delete`}>
+                          <Link href={`/store/dashboard/banner/${item.id}/delete`}>
                             Delete
                           </Link>
                         </DropdownMenuItem>

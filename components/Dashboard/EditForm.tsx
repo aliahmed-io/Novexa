@@ -26,7 +26,8 @@ import Image from "next/image";
 
 import { useState } from "react";
 import { useFormState } from "react-dom";
-import { createProduct, editProduct } from "@/app/actions";
+import { createProduct, editProduct } from "@/app/store/actions";
+
 import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
 import { type $Enums } from "@prisma/client";
@@ -70,7 +71,7 @@ export function EditForm({ data }: iAppProps) {
       <input type="hidden" name="productId" value={data.id} />
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
-          <Link href="/dashboard/products">
+          <Link href="/store/dashboard/products">
             <ChevronLeft className="w-4 h-4" />
           </Link>
         </Button>

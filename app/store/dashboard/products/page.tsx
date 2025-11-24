@@ -45,7 +45,7 @@ export default async function ProductsRoute() {
     <>
       <div className="flex items-center justify-end">
         <Button asChild className="flex items-center gap-x-2">
-          <Link href="/dashboard/products/create">
+          <Link href="/store/dashboard/products/create">
             <PlusCircle className="w-3.5 h-3.5" />
             <span>Add Product</span>
           </Link>
@@ -99,12 +99,12 @@ export default async function ProductsRoute() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/products/${item.id}`}>
+                          <Link href={`/store/dashboard/products/${item.id}`}>
                             Edit
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/products/${item.id}/delete`}>
+                          <Link href={`/store/dashboard/products/${item.id}/delete`}>
                             Delete
                           </Link>
                         </DropdownMenuItem>

@@ -11,6 +11,7 @@
   "dependencies": {
     "@conform-to/react": "^1.9.1",
     "@conform-to/zod": "^1.9.1",
+    "@google/generative-ai": "^0.11.5",
     "@gsap/react": "^2.1.2",
     "@kinde-oss/kinde-auth-nextjs": "^2.9.1",
     "@prisma/client": "^6.16.1",
@@ -40,7 +41,9 @@
     "tailwind-merge": "^3.3.1",
     "three": "^0.181.2",
     "uploadthing": "^7.7.4",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "framer-motion": "^11.11.17",
+    "use-debounce": "^10.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

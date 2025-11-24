@@ -1,6 +1,6 @@
 "use client";
 
-import { createBanner } from "@/app/actions";
+import { createBanner } from "@/app/store/actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -42,7 +42,7 @@ export default function BannerRoute() {
     <form id={form.id} onSubmit={form.onSubmit} action={action}>
       <div className="flex items-center gap-x-4">
         <Button variant="outline" size="icon" asChild>
-          <Link href="/dashboard/products">
+          <Link href="/store/dashboard/products">
             <ChevronLeft className="w-4 h-4" />
           </Link>
         </Button>

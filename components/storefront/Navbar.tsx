@@ -11,7 +11,7 @@ import { UserDropdown } from "./UserDropdown";
 import Image from "next/image";
 import { redis } from "@/lib/redis";
 import { Cart } from "@/lib/interfaces";
-
+import { NavbarSearchTrigger } from "@/components/search/NavbarSearchTrigger";
 
 export async function Navbar() {
   const { getUser } = getKindeServerSession();
@@ -41,10 +41,11 @@ export async function Navbar() {
         <NavbarLinks />
       </div>
 
-      <div className="flex items-center">
+      <div className="flex items-center gap-3">
+        <NavbarSearchTrigger />
         {user ? (
           <>
-            <Link href="/bag" className="group p-2 flex items-center mr-2">
+            <Link href="/store/bag" className="group p-2 flex items-center mr-2">
               <ShoppingBagIcon className="h-6 w-6 text-gray-400 group-hover:text-gray-500" />
               <span className="ml-2 text-sm font-medium text-gray-700 group-hover:text-gray-800">
                 {total}
@@ -62,11 +63,11 @@ export async function Navbar() {
         ) : (
           <div className="hidden md:flex md:flex-1 md:items-center md:justify-end md:space-x-2">
             <Button variant="ghost" asChild>
-              <LoginLink>Sign in</LoginLink>
+              <LoginLink postLoginRedirectURL="/store/shop">Sign in</LoginLink>
             </Button>
             <span className="h-6 w-px bg-gray-200"></span>
             <Button variant="ghost" asChild>
-              <RegisterLink>Create Account</RegisterLink>
+              <RegisterLink postLoginRedirectURL="/store/shop">Create Account</RegisterLink>
             </Button>
           </div>
         )}
