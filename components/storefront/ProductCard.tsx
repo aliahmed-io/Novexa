@@ -32,6 +32,7 @@ export function ProductCard({ item }: iAppProps) {
                   src={item}
                   alt="Product Image"
                   fill
+                  sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
                   className="object-cover object-center w-full h-full rounded-lg"
                 />
               </div>

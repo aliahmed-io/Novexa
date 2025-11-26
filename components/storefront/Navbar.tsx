@@ -37,6 +37,7 @@ export async function Navbar() {
           alt="Site Logo" // alt text is required for accessibility
           height={120}
           width={120}
+          style={{ width: "auto", height: "auto" }}
         />        </Link>
         <NavbarLinks />
       </div>

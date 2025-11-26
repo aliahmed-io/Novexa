@@ -4,31 +4,61 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { filterProducts } from "@/lib/filterProducts";
 import type { AssistantMode, Product } from "@/lib/assistantTypes";
 
-const SYSTEM_PROMPT = `You are Novexa’s Personal Shoe Expert, a friendly and professional footwear consultant. 
-You help users find the perfect shoes based on their budget, foot issues, preferences, style, gender, and color. 
-You are NOT customer support. You are a knowledgeable shoe expert.
+const SYSTEM_PROMPT = `You are Novexa’s Personal Shoe Expert, a friendly and professional footwear consultant.
+
+GOAL:
+Help users find the perfect shoes based on their needs. Be helpful, concise, and smart.
+
+FORMATTING RULES:
+- Use **Markdown** for everything.
+- Use **Bold** for key terms and product names.
+- Use Bullet points for lists.
+- Keep paragraphs short (1-2 sentences).
+
+CONCISENESS:
+- Be brief. Do not waffle.
+- Get straight to the point.
+- Avoid generic intros like "I'd be happy to help with that."
+
+PRODUCT LINKS (CRITICAL):
+- When recommending a product, YOU MUST use this exact link format:
+  [Product Name](/store/product/ID)
+- Example: [Nike Air Max](/store/product/123-abc)
+- Use the 'id' field from the provided JSON.
+
+LOGIC & MATCHING:
+- "Unisex" products are suitable for BOTH Men and Women. Recommend them freely.
+- If a user asks for "Men's Black Shoes", a "Unisex Black Shoe" is a PERFECT match.
+- Do not say "I couldn't find men's shoes" if unisex options exist.
 
 MODES:
-1. Basic Mode → Do NOT ask clarifying questions. Respond directly.
-2. Advanced Mode → Ask 1–3 clarifying questions before recommending.
+1. Basic Mode → Answer directly.
+2. Advanced Mode → Ask 1 clarifying question if needed, otherwise recommend.
 
 RECOMMENDATIONS:
-- Recommend up to 3 products.
-- Order: Best → Great Alternative → Third Good Option.
-- ALWAYS explain why each product fits the user’s needs.
-- Include product links ONLY when the user is clearly shopping.
-
-GENERAL QUESTIONS:
-If the user asks something general (“best shoe brand?”, “what’s more comfortable?”), provide a normal answer with NO product list.
-
-CONTEXT:
-You will receive a filtered product list from the database as JSON. 
-ONLY recommend from these products. 
-If no product fits, say so politely and offer the closest matches.
+- Recommend 1-3 best matches.
+- Explain WHY it fits in 1 sentence.
 
 TONE:
-Friendly, warm, professional, knowledgeable.
-Never robotic, never pushy, never sales-y.`;
+- Professional, cool, helpful. Not robotic.`;
+
+const COLOR_WORDS = [
+  "black",
+  "white",
+  "pink",
+  "red",
+  "blue",
+  "green",
+  "yellow",
+  "purple",
+  "brown",
+  "grey",
+  "gray",
+  "orange",
+  "beige",
+  "cream",
+  "navy",
+];
 
 function getGeminiClient() {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -44,12 +74,24 @@ function normalizeProducts(rows: any[]): Product[] {
     name: p.name,
     price: p.price,
     gender: (p.gender as string) ?? "unisex",
-    color: (p.color as string) ?? "",
+    color: (() => {
+      const dbColor = (p.color as string | undefined)?.toLowerCase() ?? "";
+      if (dbColor) return dbColor;
+      const text = `${p.name ?? ""} ${p.description ?? ""}`.toLowerCase();
+      for (const c of COLOR_WORDS) {
+        if (text.includes(c)) return c;
+      }
+      return "";
+    })(),
     category: String(p.category ?? ""),
     description: p.description ?? "",
     features: (p.features as string[]) ?? [],
     url: (p.url as string) ?? "",
     tags: (p.tags as string[]) ?? [],
+    images: (p.images as string[]) ?? [],
+    style: (p.style as string) ?? "",
+    height: (p.height as string) ?? "",
+    pattern: (p.pattern as string) ?? "",
   }));
 }
 
@@ -73,9 +115,13 @@ export async function POST(req: NextRequest) {
         price: true,
         description: true,
         category: true,
-        // The following fields do not currently exist on the Prisma model,
-        // but are normalized in normalizeProducts with sensible defaults
-        // so this select stays minimal and always live.
+        images: true,
+        color: true,
+        style: true,
+        height: true,
+        pattern: true,
+        tags: true,
+        features: true,
       },
     });
 

@@ -14,6 +14,43 @@ type ChatMessage = {
 
 const DEFAULT_MODE: AssistantMode = "basic";
 
+function renderMessage(content: string) {
+  // 1. Split by newlines to handle paragraphs/lists
+  const lines = content.split("\n");
+
+  return lines.map((line, i) => {
+    // 2. Parse bold: **text** -> <strong>text</strong>
+    const parts = line.split(/(\*\*.*?\*\*|\[.*?\]\(.*?\))/g);
+
+    return (
+      <div key={i} className="min-h-[1.2em]">
+        {parts.map((part, j) => {
+          if (part.startsWith("**") && part.endsWith("**")) {
+            return <strong key={j}>{part.slice(2, -2)}</strong>;
+          }
+          if (part.startsWith("[") && part.includes("](") && part.endsWith(")")) {
+            const match = part.match(/\[(.*?)\]\((.*?)\)/);
+            if (match) {
+              return (
+                <a
+                  key={j}
+                  href={match[2]}
+                  className="text-blue-500 hover:underline font-medium"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {match[1]}
+                </a>
+              );
+            }
+          }
+          return part;
+        })}
+      </div>
+    );
+  });
+}
+
 export function ShoeAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<AssistantMode>(DEFAULT_MODE);
@@ -154,13 +191,13 @@ export function ShoeAssistant() {
                 <div
                   key={m.id}
                   className={cn(
-                    "max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed",
+                    "max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap",
                     m.role === "user"
                       ? "ml-auto bg-primary text-primary-foreground"
                       : "mr-auto bg-muted text-foreground border"
                   )}
                 >
-                  {m.content}
+                  {renderMessage(m.content)}
                 </div>
               ))}
 

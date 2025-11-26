@@ -6,9 +6,84 @@ import { parseWithZod } from "@conform-to/zod";
 import { redis } from "@/lib/redis";
 import { Cart } from "@/lib/interfaces";
 import { revalidatePath } from "next/cache";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 import prisma from "@/lib/db";
 import { bannerSchema, productSchema } from "@/lib/zodSchemas";
+
+async function enrichProductWithVision(productId: string, imageUrl: string) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  const modelId = process.env.GEMINI_MODEL;
+
+  if (!apiKey || !modelId) {
+    return;
+  }
+
+  try {
+    const res = await fetch(imageUrl);
+    if (!res.ok) return;
+
+    const buffer = await res.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString("base64");
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: modelId });
+
+    const prompt = `You are a shoe vision tagger. Look at this shoe image and respond with STRICT JSON only, no extra text:
+{
+  "color": "...",
+  "style": "...",
+  "height": "...",
+  "pattern": "...",
+  "tags": ["..."],
+  "features": ["..."]
+}
+
+- "height": one of ["low-top", "mid-top", "high-top"]
+- "pattern": like ["solid", "striped", "multicolor"]
+- "style": e.g. "running", "basketball", "sneaker", "boot", "formal"
+- "tags": short visual descriptors only (no full sentences).`;
+
+    const result = await model.generateContent({
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                mimeType: "image/jpeg",
+                data: base64,
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    const text = result.response.text().trim();
+    let parsed: any;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      return;
+    }
+
+    await prisma.product.update({
+      where: { id: productId },
+      data: {
+        color: parsed.color ?? "",
+        style: parsed.style ?? "",
+        height: parsed.height ?? "",
+        pattern: parsed.pattern ?? "",
+        tags: parsed.tags ?? [],
+        features: parsed.features ?? [],
+      },
+    });
+  } catch (error) {
+    console.error("Failed to enrich product with vision", error);
+  }
+}
 
 export async function createProduct(prevState: unknown, formData: FormData) {
   const { getUser } = getKindeServerSession();
@@ -30,7 +105,7 @@ export async function createProduct(prevState: unknown, formData: FormData) {
     urlString.split(",").map((url) => url.trim())
   );
 
-  await prisma.product.create({
+  const created = await prisma.product.create({
     data: {
       name: submission.value.name,
       description: submission.value.description,
@@ -41,6 +116,10 @@ export async function createProduct(prevState: unknown, formData: FormData) {
       isFeatured: submission.value.isFeatured === true ? true : false,
     },
   });
+
+  if (flattenUrls.length > 0) {
+    void enrichProductWithVision(created.id, flattenUrls[0]);
+  }
 
   redirect("/store/dashboard/products");
 }
@@ -66,7 +145,7 @@ export async function editProduct(prevState: any, formData: FormData) {
   );
 
   const productId = formData.get("productId") as string;
-  await prisma.product.update({
+  const updated = await prisma.product.update({
     where: {
       id: productId,
     },
@@ -80,6 +159,10 @@ export async function editProduct(prevState: any, formData: FormData) {
       images: flattenUrls,
     },
   });
+
+  if (flattenUrls.length > 0) {
+    void enrichProductWithVision(updated.id, flattenUrls[0]);
+  }
 
   redirect("/store/dashboard/products");
 }

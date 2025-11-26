@@ -9,6 +9,11 @@ export type Product = {
   features: string[];
   url: string;
   tags: string[];
+  images?: string[];
+  style?: string;
+  height?: string;
+  pattern?: string;
+  isAiRecommended?: boolean;
 };
 
 export type AssistantMode = "basic" | "advanced";

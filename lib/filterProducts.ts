@@ -26,17 +26,27 @@ export function filterProducts(products: Product[], query: string): Product[] {
     const gender = product.gender?.toLowerCase() ?? "";
     const category = product.category?.toLowerCase() ?? "";
     const tags = (product.tags ?? []).map((t) => t.toLowerCase());
+    const style = product.style?.toLowerCase() ?? "";
+    const height = product.height?.toLowerCase() ?? "";
+    const pattern = product.pattern?.toLowerCase() ?? "";
+    const features = (product.features ?? []).map((f) => f.toLowerCase());
 
-    // 1. Exact tag matches
+    // 1. Exact tag/feature matches
     for (const token of tokens) {
       if (tags.includes(token)) {
         score += 6;
       } else if (tags.some((t) => t.includes(token) || token.includes(t))) {
         score += 3;
       }
+
+      if (features.includes(token)) {
+        score += 5;
+      } else if (features.some((f) => f.includes(token) || token.includes(f))) {
+        score += 2;
+      }
     }
 
-    // 2. Keyword matches: color, gender, category
+    // 2. Keyword matches: color, gender, category, style, height, pattern
     for (const token of tokens) {
       if (color && (color === token || color.includes(token) || token.includes(color))) {
         score += 4;
@@ -45,6 +55,15 @@ export function filterProducts(products: Product[], query: string): Product[] {
         score += 4;
       }
       if (category && (category === token || category.includes(token) || token.includes(category))) {
+        score += 3;
+      }
+      if (style && (style === token || style.includes(token) || token.includes(style))) {
+        score += 4;
+      }
+      if (height && (height === token || height.includes(token) || token.includes(height))) {
+        score += 4;
+      }
+      if (pattern && (pattern === token || pattern.includes(token) || token.includes(pattern))) {
         score += 3;
       }
     }

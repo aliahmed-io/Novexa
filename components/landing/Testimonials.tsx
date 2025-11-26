@@ -42,6 +42,7 @@ export function Testimonials() {
                                         src={testimonial.avatar}
                                         alt={testimonial.name}
                                         fill
+                                        sizes="40px"
                                         className="object-cover"
                                     />
                                 </div>
