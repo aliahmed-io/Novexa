@@ -1,24 +1,25 @@
 import { addItem } from "@/app/store/actions";
 import { ShoppingBagButton } from "@/components/SubmitButtons";
 import { FeaturedProducts } from "@/components/storefront/FeaturedProducts";
-import { ImageSlider } from "@/components/storefront/ImageSlider";
+import { AntigravityViewer } from "@/components/storefront/AntigravityViewer";
 import prisma from "@/lib/db";
-
 import { StarIcon } from "lucide-react";
 import { notFound } from "next/navigation";
 import { unstable_noStore as noStore } from "next/cache";
 
 async function getData(productId: string) {
+  noStore();
   const data = await prisma.product.findUnique({
     where: {
       id: productId,
     },
     select: {
+      id: true,
+      name: true,
+      description: true,
       price: true,
       images: true,
-      description: true,
-      name: true,
-      id: true,
+      modelUrl: true,
     },
   });
 
@@ -29,19 +30,21 @@ async function getData(productId: string) {
   return data;
 }
 
-export default async function ProductIdRoute({
+export default async function ProductIdPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  noStore();
   const { id } = await params;
   const data = await getData(id);
-  const addProducttoShoppingCart = addItem.bind(null, data.id);
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start lg:gap-x-24 py-6">
-        <ImageSlider images={data.images} />
+        <AntigravityViewer
+          posterImage={data.images[0]}
+          modelUrl={data.modelUrl}
+        />
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
             {data.name}
@@ -56,7 +59,7 @@ export default async function ProductIdRoute({
           </div>
           <p className="text-base text-gray-700 mt-6">{data.description}</p>
 
-          <form action={addProducttoShoppingCart}>
+          <form action={addItem.bind(null, data.id)}>
             <ShoppingBagButton />
           </form>
         </div>
