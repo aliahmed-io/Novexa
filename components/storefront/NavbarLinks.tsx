@@ -35,7 +35,7 @@ export const navbarLinks = [
 export function NavbarLinks() {
   const location = usePathname();
   return (
-    <div className="hidden md:flex justify-center items-center gap-x-2 ml-8">
+    <div className="flex flex-col gap-y-3 md:flex-row md:items-center md:gap-x-2">
       {navbarLinks.map((item) => (
         <Link
           href={item.href}

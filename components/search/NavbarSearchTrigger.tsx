@@ -4,6 +4,7 @@ import { Search } from "lucide-react";
 import { useSearch } from "./SearchContext";
 
 export function NavbarSearchTrigger() {
+  console.log("NavbarSearchTrigger rendering");
   const { openSearch } = useSearch();
 
   return (

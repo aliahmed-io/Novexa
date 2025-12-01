@@ -2,23 +2,22 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Box, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ThreeDViewerProps {
-    posterImage: string;
     modelUrl: string | null;
+    posterImage: string;
 }
 
-export default function ThreeDViewer({ posterImage, modelUrl }: ThreeDViewerProps) {
+export function ThreeDViewer({ modelUrl, posterImage }: ThreeDViewerProps) {
     const [isInteracting, setIsInteracting] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+    const [hasError, setHasError] = useState(false);
     const modelViewerRef = useRef<HTMLElement>(null);
 
     useEffect(() => {
         if (isInteracting && modelUrl) {
-            // Dynamic import to avoid SSR issues with web components
             import("@google/model-viewer").catch((e) =>
                 console.error("Error loading model-viewer", e)
             );
@@ -29,10 +28,17 @@ export default function ThreeDViewer({ posterImage, modelUrl }: ThreeDViewerProp
         if (!modelUrl) return;
         setIsInteracting(true);
         setIsLoading(true);
+        setHasError(false);
     };
 
     const handleModelLoad = () => {
         setIsLoading(false);
+    };
+
+    const handleModelError = () => {
+        setIsLoading(false);
+        setHasError(true);
+        console.error("Failed to load 3D model:", modelUrl);
     };
 
     return (
@@ -50,7 +56,7 @@ export default function ThreeDViewer({ posterImage, modelUrl }: ThreeDViewerProp
 
             {/* 3D Model Viewer */}
             <AnimatePresence>
-                {isInteracting && modelUrl && (
+                {isInteracting && modelUrl && !hasError && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -69,6 +75,7 @@ export default function ThreeDViewer({ posterImage, modelUrl }: ThreeDViewerProp
                             shadow-intensity="1"
                             style={{ width: "100%", height: "100%" }}
                             onLoad={handleModelLoad}
+                            onError={handleModelError}
                         >
                             {/* Custom AR Button could go here */}
                         </model-viewer>
@@ -76,8 +83,27 @@ export default function ThreeDViewer({ posterImage, modelUrl }: ThreeDViewerProp
                 )}
             </AnimatePresence>
 
+            {/* Error Message */}
+            {hasError && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white p-4 rounded-lg shadow-lg text-center">
+                        <p className="text-red-500 font-medium mb-2">Failed to load 3D model</p>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                                setIsInteracting(false);
+                                setHasError(false);
+                            }}
+                        >
+                            Close
+                        </Button>
+                    </div>
+                </div>
+            )}
+
             {/* Loading Indicator */}
-            {isLoading && (
+            {isLoading && !hasError && (
                 <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/10 backdrop-blur-[1px]">
                     <div className="bg-white/80 p-3 rounded-full shadow-lg backdrop-blur-md">
                         <Loader2 className="w-6 h-6 animate-spin text-primary" />

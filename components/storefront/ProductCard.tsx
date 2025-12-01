@@ -17,6 +17,7 @@ interface iAppProps {
     description: string;
     price: number;
     images: string[];
+    discountPercentage: number;
   };
 }
 
@@ -25,16 +26,21 @@ export function ProductCard({ item }: iAppProps) {
     <div className="rounded-lg">
       <Carousel className="w-full mx-auto">
         <CarouselContent>
-          {item.images.map((item, index) => (
+          {item.images.map((image, index) => (
             <CarouselItem key={index}>
               <div className="relative h-[330px]">
                 <Image
-                  src={item}
+                  src={image}
                   alt="Product Image"
                   fill
                   sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
                   className="object-cover object-center w-full h-full rounded-lg"
                 />
+                {item.discountPercentage > 0 && (
+                  <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full z-10">
+                    -{item.discountPercentage}%
+                  </div>
+                )}
               </div>
             </CarouselItem>
           ))}
@@ -45,9 +51,14 @@ export function ProductCard({ item }: iAppProps) {
 
       <div className="flex justify-between items-center mt-2">
         <h1 className="font-semibold text-xl">{item.name}</h1>
-        <h3 className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary ring-1 ring-inset ring-primary/10">
-          ${item.price}
-        </h3>
+        <div className="flex flex-col items-end">
+          <h3 className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary ring-1 ring-inset ring-primary/10">
+            ${item.discountPercentage > 0 ? Math.round(item.price * (1 - item.discountPercentage / 100)) : item.price}
+          </h3>
+          {item.discountPercentage > 0 && (
+            <span className="text-xs text-gray-500 line-through">${item.price}</span>
+          )}
+        </div>
       </div>
       <p className="text-gray-600 text-sm mt-2 line-clamp-2">
         {item.description}

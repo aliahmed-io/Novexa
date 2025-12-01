@@ -1,20 +1,12 @@
 import { ReactNode } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { CircleUser, MenuIcon } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { MenuIcon } from "lucide-react";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
-import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
 import { unstable_noStore as noStore } from "next/cache";
 import { DashboardNavigation } from "@/components/Dashboard/DashboardNavigation";
+import { UserDropdown } from "@/components/storefront/UserDropdown";
 
 export default async function DashboardLayout({
   children,
@@ -52,20 +44,12 @@ export default async function DashboardLayout({
           </SheetContent>
         </Sheet>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="secondary" size="icon" className="rounded-full">
-              <CircleUser className="w-5 h-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <LogoutLink>Logout</LogoutLink>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <UserDropdown
+          email={user.email as string}
+          name={user.given_name as string}
+          userImage={user.picture ?? `https://avatar.vercel.sh/${user.given_name}`}
+          isDashboardView={true}
+        />
       </header>
       <main className="my-5">{children}</main>
     </div>

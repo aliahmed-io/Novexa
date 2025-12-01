@@ -50,7 +50,7 @@ export function AntigravityViewer({ posterImage, modelUrl, className }: Antigrav
                 <div className="absolute inset-0 z-10 animate-in fade-in duration-700">
                     <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 0, 150], fov: 50 }}>
                         <Suspense fallback={null}>
-                            <Stage environment="city" intensity={0.6} contactShadow={{ opacity: 0.7, blur: 2 }}>
+                            <Stage environment="city" intensity={0.6} shadows="contact">
                                 <Model url={modelUrl} />
                             </Stage>
                             <OrbitControls makeDefault autoRotate autoRotateSpeed={0.5} minPolarAngle={0} maxPolarAngle={Math.PI / 1.9} />

@@ -9,14 +9,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
+import Link from "next/link";
 
 interface iAppProps {
   email: string;
   name: string;
   userImage: string;
+  isDashboardView?: boolean;
 }
 
-export function UserDropdown({ email, name, userImage }: iAppProps) {
+export function UserDropdown({ email, name, userImage, isDashboardView = false }: iAppProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -33,6 +35,23 @@ export function UserDropdown({ email, name, userImage }: iAppProps) {
           <p className="text-xs leading-none text-muted-foreground">{email}</p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {isDashboardView ? (
+          <>
+            <DropdownMenuItem asChild>
+              <Link href="/store/shop">Back to Store</Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        ) : (
+          email === "alihassan182006@gmail.com" && (
+            <>
+              <DropdownMenuItem asChild>
+                <Link href="/store/dashboard">Dashboard</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )
+        )}
         <DropdownMenuItem asChild>
           <LogoutLink>Log out</LogoutLink>
         </DropdownMenuItem>

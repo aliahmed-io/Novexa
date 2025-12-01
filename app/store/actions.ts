@@ -9,7 +9,8 @@ import { revalidatePath } from "next/cache";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 import prisma from "@/lib/db";
-import { bannerSchema, productSchema } from "@/lib/zodSchemas";
+import { bannerSchema, productSchema, reviewSchema } from "@/lib/zodSchemas";
+import { Stripe } from "stripe";
 
 async function enrichProductWithVision(productId: string, imageUrl: string) {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -105,6 +106,33 @@ export async function createProduct(prevState: unknown, formData: FormData) {
     urlString.split(",").map((url) => url.trim())
   );
 
+  const categorySlug = submission.value.category.toLowerCase().replace(/ /g, "-");
+  let categoryId = "";
+
+  // Check by slug first
+  let existingCategory = await prisma.category.findUnique({
+    where: { slug: categorySlug },
+  });
+
+  if (!existingCategory) {
+    existingCategory = await prisma.category.findUnique({
+      where: { name: submission.value.category },
+    });
+  }
+
+  if (existingCategory) {
+    categoryId = existingCategory.id;
+  } else {
+    const newCategory = await prisma.category.create({
+      data: {
+        name: submission.value.category,
+        slug: categorySlug,
+        description: "Created via product creation",
+      },
+    });
+    categoryId = newCategory.id;
+  }
+
   const created = await prisma.product.create({
     data: {
       name: submission.value.name,
@@ -112,8 +140,9 @@ export async function createProduct(prevState: unknown, formData: FormData) {
       status: submission.value.status,
       price: submission.value.price,
       images: flattenUrls,
-      category: submission.value.category,
+      categoryId: categoryId,
       isFeatured: submission.value.isFeatured === true ? true : false,
+      discountPercentage: submission.value.discountPercentage,
     },
   });
 
@@ -144,6 +173,33 @@ export async function editProduct(prevState: any, formData: FormData) {
     urlString.split(",").map((url) => url.trim())
   );
 
+  const categorySlug = submission.value.category.toLowerCase().replace(/ /g, "-");
+  let categoryId = "";
+
+  // Check by slug first
+  let existingCategory = await prisma.category.findUnique({
+    where: { slug: categorySlug },
+  });
+
+  if (!existingCategory) {
+    existingCategory = await prisma.category.findUnique({
+      where: { name: submission.value.category },
+    });
+  }
+
+  if (existingCategory) {
+    categoryId = existingCategory.id;
+  } else {
+    const newCategory = await prisma.category.create({
+      data: {
+        name: submission.value.category,
+        slug: categorySlug,
+        description: "Created via product edit",
+      },
+    });
+    categoryId = newCategory.id;
+  }
+
   const productId = formData.get("productId") as string;
   const updated = await prisma.product.update({
     where: {
@@ -152,11 +208,12 @@ export async function editProduct(prevState: any, formData: FormData) {
     data: {
       name: submission.value.name,
       description: submission.value.description,
-      category: submission.value.category,
+      categoryId: categoryId,
       price: submission.value.price,
       isFeatured: submission.value.isFeatured === true ? true : false,
       status: submission.value.status,
       images: flattenUrls,
+      discountPercentage: submission.value.discountPercentage,
     },
   });
 
@@ -255,6 +312,7 @@ export async function addItem(productId: string) {
       name: true,
       price: true,
       images: true,
+      discountPercentage: true,
     },
     where: {
       id: productId,
@@ -266,12 +324,16 @@ export async function addItem(productId: string) {
   }
   let myCart = {} as Cart;
 
+  const price = selectedProduct.discountPercentage > 0
+    ? Math.round(selectedProduct.price * (1 - selectedProduct.discountPercentage / 100))
+    : selectedProduct.price;
+
   if (!cart || !cart.items) {
     myCart = {
       userId: user.id,
       items: [
         {
-          price: selectedProduct.price,
+          price: price,
           id: selectedProduct.id,
           imageString: selectedProduct.images[0],
           name: selectedProduct.name,
@@ -296,7 +358,7 @@ export async function addItem(productId: string) {
         id: selectedProduct.id,
         imageString: selectedProduct.images[0],
         name: selectedProduct.name,
-        price: selectedProduct.price,
+        price: price,
         quantity: 1,
       });
     }
@@ -326,7 +388,17 @@ export async function delItem(formData: FormData) {
   if (cart && cart.items) {
     const updateCart: Cart = {
       userId: user.id,
-      items: cart.items.filter((item) => item.id !== productId),
+      items: cart.items.map((item) => {
+        if (item.id === productId) {
+          return {
+            ...item,
+            quantity: item.quantity - 1,
+          };
+        }
+        return item;
+      }).filter((item) => item.quantity > 0),
+      discountCode: cart.discountCode,
+      discountPercentage: cart.discountPercentage,
     };
 
     if (redis) {
@@ -349,4 +421,191 @@ export async function checkOut() {
     ? ((await redis.get<Cart>(`cart-${user.id}`)) as Cart | null)
     : null;
 
+}
+
+export async function applyDiscount(formData: FormData) {
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  if (!user) {
+    return redirect("/store/shop");
+  }
+
+  const code = formData.get("code") as string;
+
+  const discount = await prisma.discount.findUnique({
+    where: {
+      code: code,
+      isActive: true,
+    },
+  });
+
+  if (!discount) {
+    return { error: "Invalid or expired discount code" };
+  }
+
+  if ((discount as any).expiresAt && (discount as any).expiresAt < new Date()) {
+    return { error: "Discount code has expired" };
+  }
+
+  const cart: Cart | null = redis
+    ? ((await redis.get<Cart>(`cart-${user.id}`)) as Cart | null)
+    : null;
+
+  if (cart && redis) {
+    const updateCart: Cart = {
+      ...cart,
+      discountCode: discount.code,
+      discountPercentage: discount.percentage,
+    };
+    await redis.set(`cart-${user.id}`, updateCart);
+  }
+
+  revalidatePath("/store/bag");
+}
+
+export async function removeDiscount() {
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  if (!user) {
+    return redirect("/store/shop");
+  }
+
+  const cart: Cart | null = redis
+    ? ((await redis.get<Cart>(`cart-${user.id}`)) as Cart | null)
+    : null;
+
+  if (cart && redis) {
+    const { discountCode, discountPercentage, ...rest } = cart;
+    const updateCart: Cart = {
+      ...rest,
+      // Explicitly remove them if they are optional in the interface, 
+      // or set to undefined/null if that's how the interface is defined.
+      // Based on usage, they seem optional.
+    };
+    // Actually, to be safe, let's just reconstruct without them
+    await redis.set(`cart-${user.id}`, updateCart);
+  }
+
+  revalidatePath("/store/bag");
+}
+
+export async function createReview(prevState: any, formData: FormData) {
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  if (!user) {
+    return redirect("/api/auth/login");
+  }
+
+  const submission = parseWithZod(formData, {
+    schema: reviewSchema,
+  });
+
+  if (submission.status !== "success") {
+    return submission.reply();
+  }
+
+  const productId = formData.get("productId") as string;
+
+  await prisma.review.create({
+    data: {
+      rating: submission.value.rating,
+      comment: submission.value.comment,
+      userId: user.id,
+      productId: productId,
+    },
+  });
+
+  const reviews = await prisma.review.findMany({
+    where: {
+      productId: productId,
+    },
+    select: {
+      rating: true,
+    },
+  });
+
+  const totalRating = reviews.reduce((acc, review) => acc + review.rating, 0);
+  const averageRating = totalRating / reviews.length;
+
+  await prisma.product.update({
+    where: {
+      id: productId,
+    },
+    data: {
+      averageRating: averageRating,
+      reviewCount: reviews.length,
+    },
+  });
+
+  revalidatePath(`/store/product/${productId}`);
+}
+
+export async function bulkUpdateProducts(updates: { id: string; name?: string; status?: ProductStatus; price?: number }[]) {
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  if (!user || user.email !== "alihassan182006@gmail.com") {
+    throw new Error("Unauthorized");
+  }
+
+  for (const update of updates) {
+    await prisma.product.update({
+      where: { id: update.id },
+      data: {
+        name: update.name,
+        status: update.status,
+        price: update.price,
+      },
+    });
+  }
+  revalidatePath("/store/dashboard/products");
+}
+
+export async function bulkDeleteProducts(ids: string[]) {
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  if (!user || user.email !== "alihassan182006@gmail.com") {
+    throw new Error("Unauthorized");
+  }
+
+  await prisma.product.deleteMany({
+    where: {
+      id: { in: ids },
+    },
+  });
+  revalidatePath("/store/dashboard/products");
+}
+
+import { createMeshyTask } from "@/lib/meshy";
+
+export async function generate3DModel(productId: string, imageUrl: string) {
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  if (!user || user.email !== "alihassan182006@gmail.com") {
+    throw new Error("Unauthorized");
+  }
+
+  try {
+    const task = await createMeshyTask(imageUrl);
+
+    await prisma.product.update({
+      where: { id: productId },
+      data: {
+        meshyTaskId: task.result, // Meshy returns task ID in 'result' field for v2
+        meshyStatus: "PENDING",
+        meshyProgress: 0,
+      },
+    });
+
+    revalidatePath(`/store/dashboard/products/${productId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to start 3D generation:", error);
+    return { success: false, error: "Failed to start generation" };
+  }
 }

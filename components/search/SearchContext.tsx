@@ -12,6 +12,7 @@ interface SearchContextValue {
 const SearchContext = createContext<SearchContextValue | undefined>(undefined);
 
 export function SearchProvider({ children }: { children: ReactNode }) {
+  console.log("SearchProvider rendering");
   const [isOpen, setIsOpen] = useState(false);
 
   const openSearch = useCallback(() => setIsOpen(true), []);

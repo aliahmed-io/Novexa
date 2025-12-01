@@ -1,4 +1,4 @@
-import { ChceckoutButton, DeleteItem } from "@/components/SubmitButtons";
+import { CheckoutButton, DeleteItem } from "@/components/SubmitButtons";
 import { Cart } from "@/lib/interfaces";
 import { redis } from "@/lib/redis";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,8 @@ import Link from "next/link";
 import { unstable_noStore as noStore } from "next/cache";
 
 import { redirect } from "next/navigation";
-import { checkOut, delItem } from "@/app/store/actions";
+import { delItem } from "@/app/store/actions";
+import { DiscountForm, RemoveDiscountButton } from "@/components/storefront/DiscountForm";
 
 export default async function BagRoute() {
   noStore();
@@ -37,7 +38,7 @@ export default async function BagRoute() {
 
   return (
     <div className="max-w-2xl mx-auto mt-10 min-h-[55vh]">
-      {!cart || !cart.items ? (
+      {!cart || !cart.items || cart.items.length === 0 ? (
         <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center mt-20">
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
             <ShoppingBag className="w-10 h-10 text-primary" />
@@ -89,9 +90,30 @@ export default async function BagRoute() {
               <p>${new Intl.NumberFormat("en-US").format(totalPrice)}</p>
             </div>
 
-            <form action={checkOut}>
-              <ChceckoutButton />
-            </form>
+            {cart.discountCode && cart.discountPercentage ? (
+              <div className="flex items-center justify-between font-medium text-green-600 mt-2">
+                <div className="flex items-center gap-2">
+                  <p>Discount ({cart.discountCode} - {cart.discountPercentage}%):</p>
+                  <RemoveDiscountButton />
+                </div>
+                <p>-${new Intl.NumberFormat("en-US").format(totalPrice * (cart.discountPercentage / 100))}</p>
+              </div>
+            ) : (
+              <div className="mt-4">
+                <DiscountForm />
+              </div>
+            )}
+
+            <div className="flex items-center justify-between font-bold text-xl mt-4 border-t pt-4">
+              <p>Total:</p>
+              <p>${new Intl.NumberFormat("en-US").format(
+                cart.discountPercentage
+                  ? totalPrice * (1 - cart.discountPercentage / 100)
+                  : totalPrice
+              )}</p>
+            </div>
+
+            <CheckoutButton />
           </div>
         </div>
       )}

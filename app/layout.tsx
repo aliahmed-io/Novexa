@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { SearchProvider } from "@/components/search/SearchContext";
 import { SearchOverlay } from "@/components/search/SearchOverlay";
-import { ShoeAssistant } from "@/components/assistant/ShoeAssistant";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,7 +23,7 @@ export default function RootLayout({
                 <SearchProvider>
                     {children}
                     <SearchOverlay />
-                    <ShoeAssistant />
+                    <Toaster richColors closeButton />
                 </SearchProvider>
             </body>
         </html>

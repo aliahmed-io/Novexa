@@ -1,46 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { filterProducts } from "@/lib/filterProducts";
 import type { AssistantMode, Product } from "@/lib/assistantTypes";
 
-const SYSTEM_PROMPT = `You are Novexa’s Personal Shoe Expert, a friendly and professional footwear consultant.
+const SYSTEM_PROMPT = `You are Novexa’s Personal Shoe Expert.
 
 GOAL:
-Help users find the perfect shoes based on their needs. Be helpful, concise, and smart.
+Help users find the perfect shoes.
 
-FORMATTING RULES:
-- Use **Markdown** for everything.
-- Use **Bold** for key terms and product names.
-- Use Bullet points for lists.
-- Keep paragraphs short (1-2 sentences).
+OUTPUT FORMAT:
+You must return a JSON object with this structure:
+{
+  "message": "Your response text here (use Markdown for bolding key terms)",
+  "recommendedProductIds": ["id1", "id2"]
+}
 
-CONCISENESS:
-- Be brief. Do not waffle.
-- Get straight to the point.
-- Avoid generic intros like "I'd be happy to help with that."
-
-PRODUCT LINKS (CRITICAL):
-- When recommending a product, YOU MUST use this exact link format:
-  [Product Name](/store/product/ID)
-- Example: [Nike Air Max](/store/product/123-abc)
-- Use the 'id' field from the provided JSON.
-
-LOGIC & MATCHING:
-- "Unisex" products are suitable for BOTH Men and Women. Recommend them freely.
-- If a user asks for "Men's Black Shoes", a "Unisex Black Shoe" is a PERFECT match.
-- Do not say "I couldn't find men's shoes" if unisex options exist.
-
-MODES:
-1. Basic Mode → Answer directly.
-2. Advanced Mode → Ask 1 clarifying question if needed, otherwise recommend.
-
-RECOMMENDATIONS:
-- Recommend 1-3 best matches.
-- Explain WHY it fits in 1 sentence.
-
-TONE:
-- Professional, cool, helpful. Not robotic.`;
+RULES:
+- "message": Be helpful, concise (1-2 sentences), and professional.
+- "recommendedProductIds": An array of product IDs from the provided list that match the user's request.
+- If no products match, return an empty array for IDs and explain in the message.
+- "Unisex" products match both Men and Women.
+- Do NOT include links in the "message" text. The UI will render cards based on the IDs.
+`;
 
 const COLOR_WORDS = [
   "black",
@@ -95,6 +77,18 @@ function normalizeProducts(rows: any[]): Product[] {
   }));
 }
 
+const responseSchema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    message: { type: SchemaType.STRING },
+    recommendedProductIds: {
+      type: SchemaType.ARRAY,
+      items: { type: SchemaType.STRING },
+    },
+  },
+  required: ["message", "recommendedProductIds"],
+};
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -103,7 +97,7 @@ export async function POST(req: NextRequest) {
 
     if (!message) {
       return NextResponse.json(
-        { role: "assistant", content: "Please provide a question or describe what kind of shoes you are looking for." },
+        { role: "assistant", content: "Please provide a question." },
         { status: 400 }
       );
     }
@@ -130,23 +124,24 @@ export async function POST(req: NextRequest) {
     const limited = filtered.slice(0, 20);
 
     const genAI = getGeminiClient();
-
     const modelId = process.env.GEMINI_MODEL;
     if (!modelId) {
-      throw new Error(
-        "Missing GEMINI_MODEL environment variable. Set it to a valid Gemini model ID, e.g. 'gemini-2.5-flash'."
-      );
+      throw new Error("Missing GEMINI_MODEL environment variable.");
     }
 
     const model = genAI.getGenerativeModel({
       model: modelId,
       systemInstruction: SYSTEM_PROMPT,
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: responseSchema as any,
+      },
     });
 
     const modeInstruction =
       mode === "advanced"
-        ? "Mode: Advanced. Ask 1–3 clarifying questions before recommending products, when appropriate."
-        : "Mode: Basic. Do NOT ask clarifying questions. Respond directly with recommendations if the user is shopping.";
+        ? "Mode: Advanced. Ask clarifying questions if needed."
+        : "Mode: Basic. Recommend directly.";
 
     const result = await model.generateContent({
       contents: [
@@ -156,8 +151,8 @@ export async function POST(req: NextRequest) {
             { text: modeInstruction },
             {
               text:
-                "Here is the current filtered product list from the database as JSON. Only recommend from these products. If none are suitable, say so and offer closest matches.\n" +
-                JSON.stringify(limited, null, 2),
+                "Available Products JSON:\n" +
+                JSON.stringify(limited.map(p => ({ id: p.id, name: p.name, description: p.description, gender: p.gender, price: p.price })), null, 2),
             },
             { text: "\n\nUser message:\n" + message },
           ],
@@ -166,20 +161,36 @@ export async function POST(req: NextRequest) {
     });
 
     const responseText = result.response.text();
+    let parsedResponse;
+    try {
+      parsedResponse = JSON.parse(responseText);
+    } catch (e) {
+      console.error("Failed to parse Gemini JSON:", responseText);
+      // Fallback
+      return NextResponse.json({
+        role: "assistant",
+        content: responseText,
+        products: [],
+      });
+    }
 
-    return NextResponse.json({ role: "assistant", content: responseText });
+    // Map IDs back to full product objects
+    const recommendedProducts = (parsedResponse.recommendedProductIds || [])
+      .map((id: string) => products.find((p) => p.id === id))
+      .filter(Boolean);
+
+    return NextResponse.json({
+      role: "assistant",
+      content: parsedResponse.message,
+      products: recommendedProducts,
+    });
   } catch (error: any) {
-    const message =
-      typeof error?.message === "string"
-        ? error.message
-        : "Something went wrong while generating a response.";
-
+    console.error("Assistant Error:", error);
     return NextResponse.json(
       {
         role: "assistant",
-        content:
-          "I’m having trouble reaching the Novexa assistant right now. Please try again in a moment.",
-        error: message,
+        content: "I’m having trouble reaching the Novexa assistant right now.",
+        error: error.message,
       },
       { status: 500 }
     );

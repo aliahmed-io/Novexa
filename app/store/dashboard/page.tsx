@@ -1,6 +1,7 @@
 import { Chart } from "@/components/Dashboard/Charts";
 import { DashboardStats } from "@/components/Dashboard/DashboardStats";
 import { RecentSales } from "@/components/Dashboard/RecentSales";
+import { AiInsightsWidget } from "@/components/Dashboard/AiInsightsWidget";
 import {
   Card,
   CardContent,
@@ -12,32 +13,8 @@ import prisma from "@/lib/db";
 
 import { unstable_noStore as noStore } from "next/cache";
 
-async function getData() {
-  const now = new Date();
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(now.getDate() - 7);
 
-  const data = await prisma.order.findMany({
-    where: {
-      createdAt: {
-        gte: sevenDaysAgo,
-      },
-    },
-    select: {
-      amount: true,
-      createdAt: true,
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-  });
-
-  const result = data.map((item) => ({
-    date: new Intl.DateTimeFormat("en-US").format(item.createdAt),
-    revenue: item.amount / 100,
-  }));
-
-  return result;
+return result;
 }
 
 export default async function Dashboard() {
@@ -45,6 +22,7 @@ export default async function Dashboard() {
   const data = await getData();
   return (
     <>
+      <AiInsightsWidget />
       <DashboardStats />
 
       <div className="grid gap-4 md:gp-8 lg:grid-cols-2 xl:grid-cols-3 mt-10">

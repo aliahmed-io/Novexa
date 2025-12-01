@@ -17,6 +17,11 @@ async function getData() {
     }),
 
     prisma.order.findMany({
+      where: {
+        payment: {
+          status: "COMPLETED",
+        },
+      },
       select: {
         amount: true,
       },
@@ -36,6 +41,7 @@ export async function DashboardStats() {
   const totalAmount = order.reduce((accumalator, currentValue) => {
     return accumalator + currentValue.amount;
   }, 0);
+
   return (
     <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
       <Card>

@@ -7,4 +7,6 @@ export type Cart = {
     quantity: number;
     imageString: string;
   }>;
+  discountCode?: string;
+  discountPercentage?: number;
 };

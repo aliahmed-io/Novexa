@@ -1,48 +1,32 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { AssistantMode } from "@/lib/assistantTypes";
+import type { AssistantMode, Product } from "@/lib/assistantTypes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { ProductCard } from "./ProductCard";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Minimize2, Maximize2, MessageCircle } from "lucide-react";
 
 type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  products?: Product[];
 };
 
 const DEFAULT_MODE: AssistantMode = "basic";
 
 function renderMessage(content: string) {
-  // 1. Split by newlines to handle paragraphs/lists
   const lines = content.split("\n");
-
   return lines.map((line, i) => {
-    // 2. Parse bold: **text** -> <strong>text</strong>
-    const parts = line.split(/(\*\*.*?\*\*|\[.*?\]\(.*?\))/g);
-
+    const parts = line.split(/(\*\*.*?\*\*)/g);
     return (
       <div key={i} className="min-h-[1.2em]">
         {parts.map((part, j) => {
           if (part.startsWith("**") && part.endsWith("**")) {
             return <strong key={j}>{part.slice(2, -2)}</strong>;
-          }
-          if (part.startsWith("[") && part.includes("](") && part.endsWith(")")) {
-            const match = part.match(/\[(.*?)\]\((.*?)\)/);
-            if (match) {
-              return (
-                <a
-                  key={j}
-                  href={match[2]}
-                  className="text-blue-500 hover:underline font-medium"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {match[1]}
-                </a>
-              );
-            }
           }
           return part;
         })}
@@ -96,6 +80,7 @@ export function ShoeAssistant() {
         id: crypto.randomUUID(),
         role: "assistant",
         content: assistantText,
+        products: data.products,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -120,69 +105,71 @@ export function ShoeAssistant() {
   }
 
   return (
-    <>
-      {/* Floating trigger button bottom-left */}
-      {!isOpen && (
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 left-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-105 transition-transform"
-          aria-label="Open Novexa shoe expert chat"
-        >
-          <span className="text-lg font-semibold">AI</span>
-        </button>
-      )}
+    <div className="fixed inset-0 pointer-events-none z-50 flex items-end justify-end p-6">
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.button
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            onClick={() => setIsOpen(true)}
+            className="pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl hover:scale-110 transition-transform"
+            aria-label="Open Novexa shoe expert chat"
+          >
+            <MessageCircle className="h-6 w-6" />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
-      {isOpen && (
-        <div className="fixed bottom-6 left-6 z-40 w-full max-w-md md:max-w-lg">
-          <div className="rounded-2xl border bg-background shadow-lg flex flex-col h-[480px] overflow-hidden">
-            <header className="px-4 py-3 border-b flex items-center justify-between bg-muted/60">
-              <div>
-                <p className="text-sm font-semibold">Novexa Shoe Expert</p>
-                <p className="text-xs text-muted-foreground">
-                  Get personalized shoe advice in {mode === "basic" ? "Basic" : "Advanced"} mode.
-                </p>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            drag
+            dragMomentum={false}
+            dragConstraints={{ left: -window.innerWidth + 400, right: 0, top: -window.innerHeight + 500, bottom: 0 }}
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="pointer-events-auto w-full max-w-md bg-background border rounded-2xl shadow-2xl flex flex-col h-[500px] overflow-hidden"
+          >
+            <header className="px-4 py-3 border-b flex items-center justify-between bg-muted/60 cursor-move">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                <div>
+                  <p className="text-sm font-semibold">Novexa Expert</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {mode === "basic" ? "Basic Mode" : "Advanced Mode"}
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center gap-1 rounded-full bg-background px-1 py-1 text-xs">
+              <div className="flex items-center gap-1">
                 <button
-                  type="button"
-                  onClick={() => setMode("basic")}
-                  className={cn(
-                    "px-2 py-1 rounded-full transition-colors",
-                    mode === "basic" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-                  )}
+                  onClick={() => setMode(mode === "basic" ? "advanced" : "basic")}
+                  className="text-[10px] px-2 py-1 rounded-full bg-background border hover:bg-accent transition-colors"
                 >
-                  Basic
+                  Switch to {mode === "basic" ? "Advanced" : "Basic"}
                 </button>
                 <button
-                  type="button"
-                  onClick={() => setMode("advanced")}
-                  className={cn(
-                    "px-2 py-1 rounded-full transition-colors",
-                    mode === "advanced" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-                  )}
-                >
-                  Advanced
-                </button>
-                <button
-                  type="button"
                   onClick={() => setIsOpen(false)}
-                  className="ml-2 text-[10px] text-muted-foreground hover:text-foreground"
+                  className="p-1 hover:bg-black/10 rounded-full transition-colors"
                 >
-                  Close
+                  <X className="h-4 w-4" />
                 </button>
               </div>
             </header>
 
             <div
               ref={scrollRef}
-              className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-gradient-to-b from-background to-muted/40"
+              className="flex-1 overflow-y-auto px-4 py-3 space-y-4 bg-gradient-to-b from-background to-muted/20"
             >
               {messages.length === 0 && (
-                <div className="text-xs text-muted-foreground text-center mt-8">
-                  <p className="font-medium mb-1">Hi, I’m your Novexa shoe expert.</p>
-                  <p>
-                    Tell me what you’re looking for — budget, color, gender, style, or any foot issues.
+                <div className="text-center mt-10 space-y-2">
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary">
+                    <MessageCircle className="h-6 w-6" />
+                  </div>
+                  <p className="font-medium text-sm">Hi! I’m your shoe expert.</p>
+                  <p className="text-xs text-muted-foreground max-w-[200px] mx-auto">
+                    Ask me about styles, colors, or specific needs. I can show you products directly!
                   </p>
                 </div>
               )}
@@ -191,25 +178,46 @@ export function ShoeAssistant() {
                 <div
                   key={m.id}
                   className={cn(
-                    "max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap",
-                    m.role === "user"
-                      ? "ml-auto bg-primary text-primary-foreground"
-                      : "mr-auto bg-muted text-foreground border"
+                    "flex flex-col gap-2 max-w-[85%]",
+                    m.role === "user" ? "ml-auto items-end" : "mr-auto items-start"
                   )}
                 >
-                  {renderMessage(m.content)}
+                  <div
+                    className={cn(
+                      "rounded-2xl px-4 py-2 text-sm leading-relaxed whitespace-pre-wrap shadow-sm",
+                      m.role === "user"
+                        ? "bg-primary text-primary-foreground rounded-br-none"
+                        : "bg-muted text-foreground border rounded-bl-none"
+                    )}
+                  >
+                    {renderMessage(m.content)}
+                  </div>
+
+                  {/* Product Carousel */}
+                  {m.products && m.products.length > 0 && (
+                    <div className="flex gap-2 overflow-x-auto pb-2 w-full max-w-full no-scrollbar">
+                      {m.products.map((product) => (
+                        <ProductCard key={product.id} product={product} />
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
 
               {loading && (
-                <div className="mr-auto max-w-[70%] rounded-2xl px-3 py-2 text-xs bg-muted text-muted-foreground border">
-                  Thinking about the best options for you…
+                <div className="flex items-center gap-2 text-xs text-muted-foreground ml-2">
+                  <div className="flex gap-1">
+                    <span className="w-1.5 h-1.5 bg-primary/50 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                    <span className="w-1.5 h-1.5 bg-primary/50 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                    <span className="w-1.5 h-1.5 bg-primary/50 rounded-full animate-bounce" />
+                  </div>
+                  Thinking...
                 </div>
               )}
             </div>
 
             <form
-              className="border-t px-3 py-2 flex items-center gap-2 bg-background"
+              className="border-t p-3 bg-background flex gap-2"
               onSubmit={(e) => {
                 e.preventDefault();
                 void handleSend();
@@ -219,16 +227,22 @@ export function ShoeAssistant() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask about shoes, comfort, color, budget…"
-                className="text-sm"
+                placeholder="Type a message..."
+                className="text-sm rounded-full bg-muted/50 border-transparent focus:border-primary focus:bg-background transition-all"
               />
-              <Button type="submit" size="sm" disabled={loading || !input.trim()}>
-                {loading ? "Sending" : "Send"}
+              <Button
+                type="submit"
+                size="icon"
+                disabled={loading || !input.trim()}
+                className="rounded-full h-10 w-10 shrink-0"
+              >
+                <MessageCircle className="h-4 w-4" />
               </Button>
             </form>
-          </div>
-        </div>
-      )}
-    </>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
+

@@ -8,6 +8,12 @@ export const productSchema = z.object({
   images: z.array(z.string()).min(1, "At least one image is required"),
   category: z.enum(["men", "women", "kids"]),
   isFeatured: z.boolean().optional(),
+  discountPercentage: z.number().min(0).max(100).default(0),
+});
+
+export const reviewSchema = z.object({
+  rating: z.number().min(1).max(5),
+  comment: z.string().min(10, "Comment must be at least 10 characters long"),
 });
 
 export const bannerSchema = z.object({

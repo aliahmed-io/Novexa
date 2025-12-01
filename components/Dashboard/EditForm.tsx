@@ -24,9 +24,8 @@ import { SubmitButton } from "../SubmitButtons";
 import { Switch } from "@/components/ui/switch";
 import Image from "next/image";
 
-import { useState } from "react";
-import { useFormState } from "react-dom";
-import { createProduct, editProduct } from "@/app/store/actions";
+import { useActionState, useState, useTransition } from "react";
+import { editProduct, generate3DModel } from "@/app/store/actions";
 
 import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
@@ -46,12 +45,16 @@ interface iAppProps {
     images: string[];
     category: $Enums.Category;
     isFeatured: boolean;
+    discountPercentage: number;
+    modelUrl: string | null;
+    meshyStatus: string | null;
+    meshyProgress: number | null;
   };
 }
 
 export function EditForm({ data }: iAppProps) {
   const [images, setImages] = useState<string[]>(data.images);
-  const [lastResult, action] = useFormState(editProduct, undefined);
+  const [lastResult, action] = useActionState(editProduct, undefined);
   const [form, fields] = useForm({
     lastResult,
 
@@ -121,6 +124,20 @@ export function EditForm({ data }: iAppProps) {
                 placeholder="$55"
               />
               <p className="text-red-500">{fields.price.errors}</p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Label>Discount Percentage</Label>
+              <Input
+                key={fields.discountPercentage.key}
+                name={fields.discountPercentage.name}
+                defaultValue={data.discountPercentage}
+                type="number"
+                placeholder="0"
+                min={0}
+                max={100}
+              />
+              <p className="text-red-500">{fields.discountPercentage.errors}</p>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -199,9 +216,9 @@ export function EditForm({ data }: iAppProps) {
                         type="button"
                         className="absolute -top-3 -right-3 bg-red-500 p-2 rounded-lg text-white"
                       >
-                        
+
                         <XIcon className="w-3 h-3" />
-                          <span className="sr-only">Delete</span>
+                        <span className="sr-only">Delete</span>
 
                       </button>
                     </div>
@@ -221,6 +238,35 @@ export function EditForm({ data }: iAppProps) {
 
               <p className="text-red-500">{fields.images.errors}</p>
             </div>
+
+            <div className="flex flex-col gap-3">
+              <Label>3D Model (AI Generated)</Label>
+              {data.modelUrl ? (
+                <div className="flex items-center gap-2 p-4 border rounded-md bg-green-50">
+                  <span className="text-green-700 font-medium">3D Model Generated Successfully</span>
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={data.modelUrl} target="_blank" rel="noopener noreferrer">View Model</a>
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {data.meshyStatus === "PENDING" || data.meshyStatus === "IN_PROGRESS" ? (
+                    <div className="p-4 border rounded-md bg-blue-50">
+                      <p className="text-blue-700 font-medium">Generating 3D Model...</p>
+                      <p className="text-sm text-blue-600">Status: {data.meshyStatus} {data.meshyProgress ? `(${data.meshyProgress}%)` : ""}</p>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-4">
+                      <Generate3DButton productId={data.id} imageUrl={images[0]} />
+                      {data.meshyStatus === "FAILED" && (
+                        <span className="text-red-500 text-sm">Previous generation failed. Try again.</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
           </div>
         </CardContent>
         <CardFooter>
@@ -229,4 +275,26 @@ export function EditForm({ data }: iAppProps) {
       </Card>
     </form>
   );
+}
+
+function Generate3DButton({ productId, imageUrl }: { productId: string, imageUrl: string }) {
+  const [isPending, startTransition] = useTransition();
+
+  return (
+    <Button
+      type="button"
+      variant="secondary"
+      disabled={isPending || !imageUrl}
+      onClick={() => {
+        startTransition(async () => {
+          const res = await generate3DModel(productId, imageUrl);
+          if (!res.success) {
+            alert("Failed to start generation");
+          }
+        });
+      }}
+    >
+      {isPending ? "Starting..." : "Generate 3D Model"}
+    </Button>
+  )
 }

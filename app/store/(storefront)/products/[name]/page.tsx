@@ -28,7 +28,9 @@ async function getData(productCategory: string) {
       const data = await prisma.product.findMany({
         where: {
           status: "published",
-          category: "men",
+          category: {
+            slug: "men",
+          },
         },
         select: {
           name: true,
@@ -48,7 +50,9 @@ async function getData(productCategory: string) {
       const data = await prisma.product.findMany({
         where: {
           status: "published",
-          category: "women",
+          category: {
+            slug: "women",
+          },
         },
         select: {
           name: true,
@@ -68,7 +72,9 @@ async function getData(productCategory: string) {
       const data = await prisma.product.findMany({
         where: {
           status: "published",
-          category: "kids",
+          category: {
+            slug: "kids",
+          },
         },
         select: {
           name: true,

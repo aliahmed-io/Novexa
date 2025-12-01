@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronLeft, XIcon } from "lucide-react";
+import { ChevronLeft, XIcon, Sparkles, MoreHorizontal, Wand2, ImagePlus } from "lucide-react";
 import Link from "next/link";
 import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
@@ -32,6 +32,14 @@ import Image from "next/image";
 import { UploadDropzone } from "@/lib/uploadthing";
 import { SubmitButton } from "@/components/SubmitButtons";
 import { categories } from "@/lib/Categories";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function ProductCreateRoute() {
   const [images, setImages] = useState<string[]>([]);
@@ -49,6 +57,35 @@ export default function ProductCreateRoute() {
 
   const handleDelete = (index: number) => {
     setImages(images.filter((_, i) => i !== index));
+  };
+
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGenerateImage = async (mode: 'text' | 'sequence' | 'improve') => {
+    setIsGenerating(true);
+    const name = fields.name.initialValue as string;
+    const description = fields.description.initialValue as string;
+    const category = fields.category.initialValue as string;
+
+    if (!name || !category) {
+      alert("Please fill in Name and Category first.");
+      setIsGenerating(false);
+      return;
+    }
+
+    try {
+      const { generateProductImage } = await import("@/app/store/dashboard/actions");
+      const result = await generateProductImage(name, description || "", category, mode, images);
+
+      if (result.success && result.imageUrl) {
+        setImages((prev) => [...prev, result.imageUrl]);
+      }
+    } catch (error) {
+      console.error("Error generating image:", error);
+      alert("Failed to generate image");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -89,28 +126,6 @@ export default function ProductCreateRoute() {
               <Label>Description</Label>
               <Textarea
                 key={fields.description.key}
-                name={fields.description.name}
-                defaultValue={fields.description.initialValue}
-                placeholder="Write your description right here..."
-              />
-              <p className="text-red-500">{fields.description.errors}</p>
-            </div>
-            <div className="flex flex-col gap-3">
-              <Label>Price</Label>
-              <Input
-                key={fields.price.key}
-                name={fields.price.name}
-                defaultValue={fields.price.initialValue}
-                type="number"
-                placeholder="$55"
-              />
-              <p className="text-red-500">{fields.price.errors}</p>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <Label>Featured Product</Label>
-              <Switch
-                key={fields.isFeatured.key}
                 name={fields.isFeatured.name}
                 defaultValue={fields.isFeatured.initialValue}
               />
@@ -158,7 +173,52 @@ export default function ProductCreateRoute() {
             </div>
 
             <div className="flex flex-col gap-3">
-              <Label>Images</Label>
+              <div className="flex items-center justify-between">
+                <Label>Images</Label>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={isGenerating}
+                      className="text-xs gap-1"
+                    >
+                      {isGenerating ? (
+                        <>Generating...</>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3 h-3" />
+                          Generate with AI
+                        </>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>AI Generation Modes</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => handleGenerateImage('text')}>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Generate from Scratch
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleGenerateImage('sequence')}
+                      disabled={images.length === 0}
+                    >
+                      <ImagePlus className="w-4 h-4 mr-2" />
+                      Complete Sequence
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleGenerateImage('improve')}
+                      disabled={images.length === 0}
+                    >
+                      <Wand2 className="w-4 h-4 mr-2" />
+                      Improve Quality
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
               <input
                 type="hidden"
                 value={images}
@@ -184,7 +244,7 @@ export default function ProductCreateRoute() {
                         className="absolute -top-3 -right-3 bg-red-500 p-2 rounded-lg text-white"
                       >
                         <XIcon className="w-3 h-3" />
-                          <span className="sr-only">Delete</span>
+                        <span className="sr-only">Delete</span>
 
                       </button>
                     </div>

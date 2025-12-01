@@ -18,6 +18,7 @@ model User {
 
   tryOnSessions TryOnSession[]
   chatSessions  ChatSession[]
+  reviews       Review[]
 }
 
 model Product {
@@ -34,15 +35,23 @@ model Product {
   isFeatured Boolean  @default(false)
   createdAt  DateTime @default(now())
 
-  color    String?  @default("")
-  style    String?  @default("")
-  height   String?  @default("")
-  pattern  String?  @default("")
-  tags     String[] @default([])
-  features String[] @default([])
-  modelUrl String?
+  color              String?  @default("")
+  style              String?  @default("")
+  height             String?  @default("")
+  pattern            String?  @default("")
+  tags               String[] @default([])
+  features           String[] @default([])
+  modelUrl           String?
+  discountPercentage Int      @default(0)
+  averageRating      Float    @default(0)
+  reviewCount        Int      @default(0)
+
+  meshyTaskId   String?
+  meshyStatus   String? @default("PENDING") // PENDING, SUCCEEDED, FAILED
+  meshyProgress Int?    @default(0)
 
   tryOnSessions TryOnSession[]
+  reviews       Review[]
 }
 
 model Category {
@@ -99,12 +108,24 @@ model Shipment {
 }
 
 model Discount {
-  id         String   @id @default(uuid())
-  code       String   @unique
+  id         String    @id @default(uuid())
+  code       String    @unique
   percentage Int // 0-100
-  isActive   Boolean  @default(true)
+  isActive   Boolean   @default(true)
+  expiresAt  DateTime?
   orders     Order[]
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int // 1-5
+  comment   String
+  userId    String
+  User      User     @relation(fields: [userId], references: [id])
+  productId String
+  Product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
 }
 
 model TryOnSession {
@@ -158,4 +179,14 @@ enum ShipmentStatus {
   SHIPPED
   DELIVERED
   RETURNED
+}
+
+model DailyStat {
+  id            String   @id @default(uuid())
+  date          DateTime @unique @default(now())
+  totalRevenue  Int      @default(0)
+  totalOrders   Int      @default(0)
+  totalVisitors Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
