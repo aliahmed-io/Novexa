@@ -31,51 +31,54 @@ export function filterProducts(products: Product[], query: string): Product[] {
     const pattern = product.pattern?.toLowerCase() ?? "";
     const features = (product.features ?? []).map((f) => f.toLowerCase());
 
-    // 1. Exact tag/feature matches
+    // Helper for strict word matching
+    const hasWord = (text: string, word: string) => {
+      const regex = new RegExp(`\\b${word}\\b`, "i");
+      return regex.test(text);
+    };
+
+    // 1. Exact tag/feature matches (Strict)
     for (const token of tokens) {
-      if (tags.includes(token)) {
+      if (tags.some(t => t === token || hasWord(t, token))) {
         score += 6;
-      } else if (tags.some((t) => t.includes(token) || token.includes(t))) {
-        score += 3;
       }
-
-      if (features.includes(token)) {
+      if (features.some(f => f === token || hasWord(f, token))) {
         score += 5;
-      } else if (features.some((f) => f.includes(token) || token.includes(f))) {
-        score += 2;
       }
     }
 
-    // 2. Keyword matches: color, gender, category, style, height, pattern
+    // 2. Keyword matches: color, gender, category, style, height, pattern (Strict)
     for (const token of tokens) {
-      if (color && (color === token || color.includes(token) || token.includes(color))) {
+      if (color && (color === token || hasWord(color, token))) {
+        score += 10; // Boosted score for color match
+      }
+      if (gender && (gender === token || hasWord(gender, token))) {
         score += 4;
       }
-      if (gender && (gender === token || gender.includes(token) || token.includes(gender))) {
-        score += 4;
-      }
-      if (category && (category === token || category.includes(token) || token.includes(category))) {
+      if (category && (category === token || hasWord(category, token))) {
         score += 3;
       }
-      if (style && (style === token || style.includes(token) || token.includes(style))) {
+      if (style && (style === token || hasWord(style, token))) {
         score += 4;
       }
-      if (height && (height === token || height.includes(token) || token.includes(height))) {
+      if (height && (height === token || hasWord(height, token))) {
         score += 4;
       }
-      if (pattern && (pattern === token || pattern.includes(token) || token.includes(pattern))) {
+      if (pattern && (pattern === token || hasWord(pattern, token))) {
         score += 3;
       }
     }
 
-    // 3. Fuzzy search on title + description (simple token includes)
+    // 3. Fuzzy search on title + description (Strict word match preferred, fallback to includes)
     for (const token of tokens) {
-      if (text.includes(token)) {
-        score += 2;
+      if (hasWord(text, token)) {
+        score += 3;
+      } else if (text.includes(token)) {
+        score += 1; // Lower score for partial match
       }
     }
 
-    // 4. Small bonus if full query appears in text
+    // 4. Bonus if full query appears in text
     if (text.includes(normalizedQuery)) {
       score += 5;
     }

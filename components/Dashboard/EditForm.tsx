@@ -26,6 +26,8 @@ import Image from "next/image";
 
 import { useActionState, useState, useTransition } from "react";
 import { editProduct, generate3DModel, delete3DModel } from "@/app/store/actions";
+import { analyzeProductImage } from "@/app/store/dashboard/products/analyze/actions";
+import { Sparkles, Loader2 } from "lucide-react";
 
 import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
@@ -43,7 +45,7 @@ interface iAppProps {
     status: $Enums.ProductStatus;
     price: number;
     images: string[];
-    category: $Enums.Category;
+    category: string;
     isFeatured: boolean;
     discountPercentage: number;
     modelUrl: string | null;
@@ -97,13 +99,10 @@ export function EditForm({ data }: iAppProps) {
                 key={fields.name.key}
                 name={fields.name.name}
                 defaultValue={data.name}
-                className="w-full"
                 placeholder="Product Name"
               />
-
               <p className="text-red-500">{fields.name.errors}</p>
             </div>
-
             <div className="flex flex-col gap-3">
               <Label>Description</Label>
               <Textarea
@@ -231,11 +230,10 @@ export function EditForm({ data }: iAppProps) {
                     setImages(res.map((r) => r.url));
                   }}
                   onUploadError={() => {
-                    alert("Something went wrong");
+                    alert("Upload failed");
                   }}
                 />
               )}
-
               <p className="text-red-500">{fields.images.errors}</p>
             </div>
 
@@ -249,6 +247,11 @@ export function EditForm({ data }: iAppProps) {
                 progress={data.meshyProgress}
                 modelUrl={data.modelUrl}
               />
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Label>AI Analysis</Label>
+              <AiAnalyzeButton productId={data.id} imageUrl={images[0]} />
             </div>
 
           </div>
@@ -342,5 +345,44 @@ function ModelSwitch({
         </div>
       )}
     </div>
+  );
+}
+
+function AiAnalyzeButton({ productId, imageUrl }: { productId: string, imageUrl: string }) {
+  const [isAnalyzing, startTransition] = useTransition();
+
+  const handleAnalyze = () => {
+    if (!imageUrl) return alert("Please upload an image first.");
+
+    startTransition(async () => {
+      const res = await analyzeProductImage(productId, imageUrl);
+      if (res.success) {
+        alert(`Analyzed! Found: ${res.data.color}, ${res.data.style}`);
+      } else {
+        alert("Analysis failed: " + res.error);
+      }
+    });
+  };
+
+  return (
+    <Button
+      type="button"
+      variant="secondary"
+      onClick={handleAnalyze}
+      disabled={isAnalyzing || !imageUrl}
+      className="w-full gap-2 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 hover:from-indigo-500/20 hover:to-purple-500/20 border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300"
+    >
+      {isAnalyzing ? (
+        <>
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Analyzing Image...
+        </>
+      ) : (
+        <>
+          <Sparkles className="w-4 h-4" />
+          Auto-Tag with AI
+        </>
+      )}
+    </Button>
   );
 }

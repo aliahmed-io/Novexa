@@ -1,18 +1,15 @@
 import Link from "next/link";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { ShoppingBagIcon, MenuIcon } from "lucide-react";
+import { ShoppingBagIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  LoginLink,
-  RegisterLink,
-} from "@kinde-oss/kinde-auth-nextjs/components";
+import { AuthButtons } from "./AuthButtons";
 import { NavbarLinks } from "./NavbarLinks";
 import { UserDropdown } from "./UserDropdown";
 import Image from "next/image";
 import { redis } from "@/lib/redis";
 import { Cart } from "@/lib/interfaces";
 import { NavbarSearchTrigger } from "@/components/search/NavbarSearchTrigger";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { MobileMenu } from "./MobileMenu";
 
 export async function Navbar() {
   const { getUser } = getKindeServerSession();
@@ -32,28 +29,7 @@ export async function Navbar() {
   return (
     <nav className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
       <div className="flex items-center">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="md:hidden mr-2">
-              <MenuIcon className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left">
-            <nav className="flex flex-col gap-6 mt-6">
-              <NavbarLinks />
-              {!user && (
-                <div className="flex flex-col gap-2 mt-4">
-                  <Button variant="ghost" asChild className="justify-start">
-                    <LoginLink postLoginRedirectURL="/store/shop">Sign in</LoginLink>
-                  </Button>
-                  <Button variant="ghost" asChild className="justify-start">
-                    <RegisterLink postLoginRedirectURL="/store/shop">Create Account</RegisterLink>
-                  </Button>
-                </div>
-              )}
-            </nav>
-          </SheetContent>
-        </Sheet>
+        <MobileMenu user={user} />
 
         <Link href="/store/shop">
           <Image
@@ -89,15 +65,7 @@ export async function Navbar() {
             />
           </>
         ) : (
-          <div className="hidden md:flex md:flex-1 md:items-center md:justify-end md:space-x-2">
-            <Button variant="ghost" asChild>
-              <LoginLink postLoginRedirectURL="/store/shop">Sign in</LoginLink>
-            </Button>
-            <span className="h-6 w-px bg-gray-200"></span>
-            <Button variant="ghost" asChild>
-              <RegisterLink postLoginRedirectURL="/store/shop">Create Account</RegisterLink>
-            </Button>
-          </div>
+          <AuthButtons />
         )}
       </div>
     </nav>

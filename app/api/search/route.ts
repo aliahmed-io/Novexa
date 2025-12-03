@@ -77,7 +77,9 @@ function normalizeProducts(rows: any[]): Product[] {
       if (dbColor) return dbColor;
       const text = `${p.name ?? ""} ${p.description ?? ""}`.toLowerCase();
       for (const c of COLOR_WORDS) {
-        if (text.includes(c)) return c;
+        // Strict word match for color inference
+        const regex = new RegExp(`\\b${c}\\b`, "i");
+        if (regex.test(text)) return c;
       }
       return "";
     })(),

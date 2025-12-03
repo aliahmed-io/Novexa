@@ -61,7 +61,9 @@ function normalizeProducts(rows: any[]): Product[] {
       if (dbColor) return dbColor;
       const text = `${p.name ?? ""} ${p.description ?? ""}`.toLowerCase();
       for (const c of COLOR_WORDS) {
-        if (text.includes(c)) return c;
+        // Strict word match for color inference
+        const regex = new RegExp(`\\b${c}\\b`, "i");
+        if (regex.test(text)) return c;
       }
       return "";
     })(),
@@ -152,7 +154,7 @@ export async function POST(req: NextRequest) {
             {
               text:
                 "Available Products JSON:\n" +
-                JSON.stringify(limited.map(p => ({ id: p.id, name: p.name, description: p.description, gender: p.gender, price: p.price })), null, 2),
+                JSON.stringify(limited.map(p => ({ id: p.id, name: p.name, description: p.description, gender: p.gender, price: p.price, color: p.color })), null, 2),
             },
             { text: "\n\nUser message:\n" + message },
           ],

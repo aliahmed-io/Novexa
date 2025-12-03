@@ -12,6 +12,7 @@ import prisma from "@/lib/db";
 import { bannerSchema, productSchema, reviewSchema } from "@/lib/zodSchemas";
 import { Stripe } from "stripe";
 import { ProductStatus } from "@prisma/client";
+import { containsBadLanguage } from "@/lib/filterBadWords";
 
 async function enrichProductWithVision(productId: string, imageUrl: string) {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -497,7 +498,7 @@ export async function createReview(prevState: any, formData: FormData) {
   const user = await getUser();
 
   if (!user) {
-    return redirect("/api/auth/login");
+    return redirect("/store/api/auth/login");
   }
 
   const submission = parseWithZod(formData, {
@@ -506,6 +507,14 @@ export async function createReview(prevState: any, formData: FormData) {
 
   if (submission.status !== "success") {
     return submission.reply();
+  }
+
+  if (containsBadLanguage(submission.value.comment)) {
+    return submission.reply({
+      fieldErrors: {
+        comment: ["Please maintain professional language. Your comment contains inappropriate words."],
+      },
+    });
   }
 
   const productId = formData.get("productId") as string;

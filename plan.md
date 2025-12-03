@@ -38,6 +38,18 @@ Novexa is a modern, high-performance e-commerce application built with the lates
 - **AI Admin Dashboard**: Business advisor widget using Gemini to analyze sales data.
 - **AI Image Generation**: Integrated into product creation form to generate product images.
 - **Bulk Product Importer**: Upload CSV to create mass products. Implemented using `papaparse`.
+- **AI Image Indexing (Visual Search)**: Automated tagging of product images (color, style, features) using Gemini Vision for accurate search results.
+- **Enhanced Search & AI Assistant**: Fixed "colorblind" search issues with strict word matching and improved AI product recommendations.
+- **Review System**: Full review system with star ratings, comments, and dynamic average rating calculation.
+- **Review System Improvements**: Removed character limits, fixed auth redirects, and added a profanity filter.
+- **Dynamic Auth Redirect**: Smart redirection returning users to their previous page after login/signup.
+- **Discount System**: Comprehensive discount code management with percentage-based reductions and expiry dates.
+- **Product-Specific Discounts**: Individual product discount management with UI indicators (crossed-out prices).
+- **Bulk Product Edit**: Admin interface for mass updating product prices and statuses.
+- **AI 3D Generation Pipeline**: Integrated Meshy API for generating 3D models from 2D images directly within the admin dashboard.
+
+- **Admin Order Management**: Dashboard view for tracking and managing customer orders.
+- **Revenue Analytics Fix**: Corrected dashboard revenue calculation to track only successful Stripe payments.
 
 ### Realistic Rating
 - **Code Quality**: 8.5/10 (Modern practices, clean structure).
@@ -83,6 +95,20 @@ This section outlines the path to a fully featured, high-value e-commerce platfo
 - **Price Impact**: +$150 value.
 
 ### 5. Review System
+
+### 6. User Order History
+- **Description**: Page for users to view their past orders and status.
+- **Implementation**: Create `/store/orders` page. Fetch orders by `userId`.
+- **Difficulty**: Low.
+- **Value**: High (User experience).
+- **Price Impact**: +$100 value.
+
+### 7. Admin Email Broadcasting
+- **Description**: Admin tool to send mass emails (announcements, events, discounts) to all users.
+- **Implementation**: Integrate Resend/SendGrid. Build admin compose UI. Background job for bulk sending.
+- **Difficulty**: Medium.
+- **Value**: High (Marketing & Engagement).
+- **Price Impact**: +$300 value.
 ### Business Suggestions
 1.  **Email Marketing**: Integrate **Resend** or **SendGrid** to send abandoned cart emails and order confirmations. This is the highest ROI activity you can add.
 2.  **SEO & Metadata**: Ensure every product page has dynamic `metadata` (OpenGraph images, titles, descriptions) so links look good on social media.
