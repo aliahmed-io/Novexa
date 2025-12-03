@@ -126,8 +126,44 @@ export default function ProductCreateRoute() {
               <Label>Description</Label>
               <Textarea
                 key={fields.description.key}
+                name={fields.description.name}
+                defaultValue={fields.description.initialValue}
+              />
+              <p className="text-red-500">{fields.description.errors}</p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Label>Price</Label>
+              <Input
+                key={fields.price.key}
+                name={fields.price.name}
+                defaultValue={fields.price.initialValue}
+                type="number"
+                placeholder="Product Price"
+              />
+              <p className="text-red-500">{fields.price.errors}</p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Label>Discount Percentage</Label>
+              <Input
+                key={fields.discountPercentage.key}
+                name={fields.discountPercentage.name}
+                defaultValue={fields.discountPercentage.initialValue}
+                type="number"
+                placeholder="0"
+                min={0}
+                max={100}
+              />
+              <p className="text-red-500">{fields.discountPercentage.errors}</p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Label>Featured Product</Label>
+              <Switch
+                key={fields.isFeatured.key}
                 name={fields.isFeatured.name}
-                defaultValue={fields.isFeatured.initialValue}
+                defaultChecked={fields.isFeatured.initialValue === "on"}
               />
               <p className="text-red-500">{fields.isFeatured.errors}</p>
             </div>
@@ -263,6 +299,13 @@ export default function ProductCreateRoute() {
               )}
 
               <p className="text-red-500">{fields.images.errors}</p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Label>3D Model (AI Generated)</Label>
+              <div className="p-4 border rounded-md bg-muted/50 text-muted-foreground text-sm">
+                3D Model generation will be available after you create the product.
+              </div>
             </div>
           </div>
         </CardContent>

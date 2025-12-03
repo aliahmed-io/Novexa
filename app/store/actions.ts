@@ -11,6 +11,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import prisma from "@/lib/db";
 import { bannerSchema, productSchema, reviewSchema } from "@/lib/zodSchemas";
 import { Stripe } from "stripe";
+import { ProductStatus } from "@prisma/client";
 
 async function enrichProductWithVision(productId: string, imageUrl: string) {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -608,4 +609,26 @@ export async function generate3DModel(productId: string, imageUrl: string) {
     console.error("Failed to start 3D generation:", error);
     return { success: false, error: "Failed to start generation" };
   }
+}
+
+export async function delete3DModel(productId: string) {
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  if (!user || user.email !== "alihassan182006@gmail.com") {
+    throw new Error("Unauthorized");
+  }
+
+  await prisma.product.update({
+    where: { id: productId },
+    data: {
+      modelUrl: null,
+      meshyTaskId: null,
+      meshyStatus: null,
+      meshyProgress: null,
+    },
+  });
+
+  revalidatePath(`/store/dashboard/products/${productId}`);
+  revalidatePath(`/store/product/${productId}`);
 }

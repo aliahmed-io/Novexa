@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
     Table,
     TableBody,
@@ -29,11 +30,12 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { bulkDeleteProducts, bulkUpdateProducts } from "@/app/store/actions";
+import { ProductStatus } from "@prisma/client";
 
 interface Product {
     id: string;
     name: string;
-    status: string;
+    status: ProductStatus;
     price: number;
     images: string[];
     createdAt: Date;
@@ -103,6 +105,25 @@ export function BulkEditTable({ data }: { data: Product[] }) {
 
     const hasChanges = Object.keys(editedProducts).length > 0;
 
+    if (data.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] border rounded-md border-dashed p-8 text-center animate-in fade-in-50">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                    <MoreHorizontal className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="mt-4 text-lg font-semibold">No products found</h3>
+                <p className="mb-4 mt-2 text-sm text-muted-foreground max-w-sm">
+                    You haven't created any products yet. Start by adding a new product to your store.
+                </p>
+                <Button asChild>
+                    <Link href="/store/dashboard/products/create">
+                        Add Product
+                    </Link>
+                </Button>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -153,6 +174,7 @@ export function BulkEditTable({ data }: { data: Product[] }) {
                             <TableHead>Status</TableHead>
                             <TableHead>Price</TableHead>
                             <TableHead>Date</TableHead>
+                            <TableHead className="text-end">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -209,6 +231,27 @@ export function BulkEditTable({ data }: { data: Product[] }) {
                                     </TableCell>
                                     <TableCell>
                                         {new Intl.DateTimeFormat("en-US").format(new Date(item.createdAt))}
+                                    </TableCell>
+                                    <TableCell className="text-end">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button size="icon" variant="ghost">
+                                                    <MoreHorizontal className="w-4 h-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem asChild>
+                                                    <Link href={`/store/dashboard/products/${item.id}`}>
+                                                        Edit
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem asChild>
+                                                    <Link href={`/store/dashboard/products/${item.id}/delete`}>
+                                                        Delete
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </TableCell>
                                 </TableRow>
                             );

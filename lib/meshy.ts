@@ -21,6 +21,7 @@ export async function createMeshyTask(imageUrl: string) {
             image_url: imageUrl,
             enable_pbr: true,
             should_remesh: true,
+            webhook_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/meshy`,
         });
         return response.data;
     } catch (error) {

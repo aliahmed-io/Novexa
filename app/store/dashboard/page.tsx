@@ -13,8 +13,35 @@ import prisma from "@/lib/db";
 
 import { unstable_noStore as noStore } from "next/cache";
 
+async function getData() {
+  const now = new Date();
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(now.getDate() - 7);
 
-return result;
+  const data = await prisma.order.findMany({
+    where: {
+      createdAt: {
+        gte: sevenDaysAgo,
+      },
+      payment: {
+        status: "COMPLETED",
+      },
+    },
+    select: {
+      amount: true,
+      createdAt: true,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  const result = data.map((item) => ({
+    date: new Intl.DateTimeFormat("en-US").format(item.createdAt),
+    revenue: item.amount / 100,
+  }));
+
+  return result;
 }
 
 export default async function Dashboard() {

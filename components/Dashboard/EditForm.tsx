@@ -25,7 +25,7 @@ import { Switch } from "@/components/ui/switch";
 import Image from "next/image";
 
 import { useActionState, useState, useTransition } from "react";
-import { editProduct, generate3DModel } from "@/app/store/actions";
+import { editProduct, generate3DModel, delete3DModel } from "@/app/store/actions";
 
 import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
@@ -240,31 +240,15 @@ export function EditForm({ data }: iAppProps) {
             </div>
 
             <div className="flex flex-col gap-3">
-              <Label>3D Model (AI Generated)</Label>
-              {data.modelUrl ? (
-                <div className="flex items-center gap-2 p-4 border rounded-md bg-green-50">
-                  <span className="text-green-700 font-medium">3D Model Generated Successfully</span>
-                  <Button variant="outline" size="sm" asChild>
-                    <a href={data.modelUrl} target="_blank" rel="noopener noreferrer">View Model</a>
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  {data.meshyStatus === "PENDING" || data.meshyStatus === "IN_PROGRESS" ? (
-                    <div className="p-4 border rounded-md bg-blue-50">
-                      <p className="text-blue-700 font-medium">Generating 3D Model...</p>
-                      <p className="text-sm text-blue-600">Status: {data.meshyStatus} {data.meshyProgress ? `(${data.meshyProgress}%)` : ""}</p>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-4">
-                      <Generate3DButton productId={data.id} imageUrl={images[0]} />
-                      {data.meshyStatus === "FAILED" && (
-                        <span className="text-red-500 text-sm">Previous generation failed. Try again.</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
+              <Label>3D Model</Label>
+              <ModelSwitch
+                productId={data.id}
+                imageUrl={images[0]}
+                hasModel={!!data.modelUrl}
+                status={data.meshyStatus}
+                progress={data.meshyProgress}
+                modelUrl={data.modelUrl}
+              />
             </div>
 
           </div>
@@ -277,24 +261,86 @@ export function EditForm({ data }: iAppProps) {
   );
 }
 
-function Generate3DButton({ productId, imageUrl }: { productId: string, imageUrl: string }) {
+function ModelSwitch({
+  productId,
+  imageUrl,
+  hasModel,
+  status,
+  progress,
+  modelUrl
+}: {
+  productId: string,
+  imageUrl: string,
+  hasModel: boolean,
+  status: string | null,
+  progress: number | null,
+  modelUrl: string | null
+}) {
   const [isPending, startTransition] = useTransition();
+  const isGenerating = status === "PENDING" || status === "IN_PROGRESS";
+
+  const handleToggle = (checked: boolean) => {
+    startTransition(async () => {
+      if (checked) {
+        const res = await generate3DModel(productId, imageUrl);
+        if (!res.success) alert("Failed to start generation");
+      } else {
+        if (confirm("Are you sure you want to delete this 3D model?")) {
+          await delete3DModel(productId);
+        }
+      }
+    });
+  };
+
+  const handleRegenerate = () => {
+    if (confirm("This will delete the current model and generate a new one. Continue?")) {
+      startTransition(async () => {
+        await generate3DModel(productId, imageUrl);
+      });
+    }
+  };
 
   return (
-    <Button
-      type="button"
-      variant="secondary"
-      disabled={isPending || !imageUrl}
-      onClick={() => {
-        startTransition(async () => {
-          const res = await generate3DModel(productId, imageUrl);
-          if (!res.success) {
-            alert("Failed to start generation");
-          }
-        });
-      }}
-    >
-      {isPending ? "Starting..." : "Generate 3D Model"}
-    </Button>
-  )
+    <div className="flex flex-col gap-2 w-full">
+      <div className="flex items-center gap-4">
+        <Switch
+          checked={hasModel || isGenerating}
+          disabled={isPending || !imageUrl}
+          onCheckedChange={handleToggle}
+        />
+        <span className="text-sm font-medium">
+          {hasModel ? "3D Model Enabled" : isGenerating ? "Generating..." : "Enable 3D Model"}
+        </span>
+      </div>
+
+      {isGenerating && (
+        <div className="text-xs text-muted-foreground ml-14">
+          Status: {status} {progress ? `(${progress}%)` : ""}
+        </div>
+      )}
+
+      {hasModel && (
+        <div className="flex items-center gap-2 ml-14">
+          <Button variant="outline" size="sm" asChild>
+            <a href={modelUrl!} target="_blank" rel="noopener noreferrer">View</a>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRegenerate}
+            disabled={isPending}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Regenerate
+          </Button>
+        </div>
+      )}
+
+      {status === "FAILED" && !hasModel && !isGenerating && (
+        <div className="text-xs text-red-500 ml-14">
+          Generation failed. Toggle off and on to try again.
+        </div>
+      )}
+    </div>
+  );
 }

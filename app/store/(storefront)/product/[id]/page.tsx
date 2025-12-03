@@ -55,28 +55,7 @@ export default async function ProductIdPage({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start lg:gap-x-24 py-6">
             <div className="relative h-[500px] w-full">
                 {/* 3D Viewer or Image Carousel */}
-                {data.modelUrl ? (
-                    <ThreeDViewer modelUrl={data.modelUrl} posterImage={data.images[0]} />
-                ) : (
-                    <Carousel className="w-full h-full">
-                        <CarouselContent>
-                            {data.images.map((item, index) => (
-                                <CarouselItem key={index}>
-                                    <div className="relative h-[500px] w-full rounded-lg overflow-hidden">
-                                        <Image
-                                            src={item}
-                                            alt={data.name}
-                                            fill
-                                            className="object-cover w-full h-full"
-                                        />
-                                    </div>
-                                </CarouselItem>
-                            ))}
-                        </CarouselContent>
-                        <CarouselPrevious className="left-2" />
-                        <CarouselNext className="right-2" />
-                    </Carousel>
-                )}
+                <ThreeDViewer modelUrl={data.modelUrl} images={data.images} />
             </div>
 
             <div>
