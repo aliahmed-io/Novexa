@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import ThreeDViewer from "@/components/product/ThreeDViewer";
+import { ThreeDViewer } from "../product/ThreeDViewer";
 
 interface iAppProps {
   images: string[];
@@ -36,7 +36,7 @@ export function ImageSlider({ images, modelUrl }: iAppProps) {
       <div className="relative overflow-hidden rounded-lg aspect-square">
         <ThreeDViewer
           key={mainImageIndex}
-          posterImage={images[mainImageIndex]}
+          images={[images[mainImageIndex]]}
           modelUrl={mainImageIndex === 0 ? modelUrl || null : null}
         />
 

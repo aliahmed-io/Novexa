@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { unstable_noStore as noStore } from "next/cache";
+import { OrderStatusSelect } from "./OrderStatusSelect";
 
 // 2. CREATE A TYPE THAT MATCHES YOUR 'select' QUERY
 type OrderPayload = Prisma.OrderGetPayload<{
@@ -90,7 +91,9 @@ export default async function OrdersPage() {
                   </p>
                 </TableCell>
                 <TableCell>Order</TableCell>
-                <TableCell>{item.status}</TableCell>
+                <TableCell>
+                  <OrderStatusSelect orderId={item.id} currentStatus={item.status} />
+                </TableCell>
                 <TableCell>
                   {new Intl.DateTimeFormat("en-US").format(item.createdAt)}
                 </TableCell>

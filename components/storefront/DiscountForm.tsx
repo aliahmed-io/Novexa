@@ -25,8 +25,12 @@ function SubmitButton() {
 }
 
 export function DiscountForm() {
+    const handleApplyDiscount = async (formData: FormData) => {
+        await applyDiscount(formData);
+    };
+
     return (
-        <form action={applyDiscount} className="flex flex-col gap-2">
+        <form action={handleApplyDiscount} className="flex flex-col gap-2">
             <Label htmlFor="code">Discount Code</Label>
             <div className="flex gap-2">
                 <Input
@@ -43,8 +47,12 @@ export function DiscountForm() {
 }
 
 export function RemoveDiscountButton() {
+    const handleRemoveDiscount = async () => {
+        await removeDiscount();
+    };
+
     return (
-        <form action={removeDiscount}>
+        <form action={handleRemoveDiscount}>
             <Button type="submit" variant="ghost" size="icon" className="h-6 w-6">
                 <X className="h-4 w-4" />
                 <span className="sr-only">Remove discount</span>

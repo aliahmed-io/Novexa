@@ -3,6 +3,8 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import Stripe from "stripe";
+import { resend } from "@/lib/resend";
+import { OrderConfirmationEmail } from "@/components/emails/OrderConfirmationEmail";
 
 export async function POST(req: Request) {
     const body = await req.text();
@@ -31,9 +33,7 @@ export async function POST(req: Request) {
                     id: orderId,
                 },
                 data: {
-                    status: "pending", // Or 'paid' if you have that status. Schema says 'pending', 'shipped', 'delivered', 'cancelled'.
-                    // We should probably add a 'paid' status or assume 'pending' means paid but not shipped?
-                    // The schema has PaymentStatus enum. Let's create the Payment record.
+                    status: "pending",
                 },
             });
 
@@ -47,6 +47,20 @@ export async function POST(req: Request) {
                     currency: session.currency || "usd",
                 },
             });
+
+            // Send Order Confirmation Email
+            const customerEmail = session.customer_details?.email;
+            if (customerEmail) {
+                await resend.emails.send({
+                    from: "Novexa <onboarding@resend.dev>",
+                    to: customerEmail,
+                    subject: "Order Confirmation",
+                    react: OrderConfirmationEmail({
+                        orderId: orderId,
+                        amount: session.amount_total as number,
+                    }),
+                });
+            }
         }
     }
 

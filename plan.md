@@ -34,26 +34,17 @@ Novexa is a modern, high-performance e-commerce application built with the lates
 - **Prisma Configuration**: Updated to support Prisma v6/v7 with `prisma.config.ts` and explicit client configuration.
 - **AI Chatbot & Smart Search**: Implemented using Google Gemini for product ranking and `ShoeAssistant` for conversational UI.
 - **Admin Analytics**: Dashboard with charts for revenue and recent sales.
-- **Payment Integration**: Stripe Checkout (Sandbox) implemented with Webhooks for order processing.
-- **AI Admin Dashboard**: Business advisor widget using Gemini to analyze sales data.
-- **AI Image Generation**: Integrated into product creation form to generate product images.
-- **Bulk Product Importer**: Upload CSV to create mass products. Implemented using `papaparse`.
-- **AI Image Indexing (Visual Search)**: Automated tagging of product images (color, style, features) using Gemini Vision for accurate search results.
-- **Enhanced Search & AI Assistant**: Fixed "colorblind" search issues with strict word matching and improved AI product recommendations.
-- **Review System**: Full review system with star ratings, comments, and dynamic average rating calculation.
-- **Review System Improvements**: Removed character limits, fixed auth redirects, and added a profanity filter.
-- **Dynamic Auth Redirect**: Smart redirection returning users to their previous page after login/signup.
-- **Discount System**: Comprehensive discount code management with percentage-based reductions and expiry dates.
-- **Product-Specific Discounts**: Individual product discount management with UI indicators (crossed-out prices).
-- **Bulk Product Edit**: Admin interface for mass updating product prices and statuses.
-- **AI 3D Generation Pipeline**: Integrated Meshy API for generating 3D models from 2D images directly within the admin dashboard.
 
 - **Admin Order Management**: Dashboard view for tracking and managing customer orders.
 - **Revenue Analytics Fix**: Corrected dashboard revenue calculation to track only successful Stripe payments.
+- **User Order History**: Page for users to view their past orders and status.
+- **Filter and Sort Functions**: Product filtering by price/color and sorting by price/popularity/newness.
+- **Admin Email Broadcasting**: Tool for admins to send mass announcements to all users via Resend.
+- **Transactional Emails**: Automated order confirmation and delivery notification emails.
 
 ### Realistic Rating
 - **Code Quality**: 8.5/10 (Modern practices, clean structure).
-- **Completeness**: 4/10 (Missing payments, checkout, shipping, and user account management).
+- **Completeness**: 7/10 (Payments, order management, email system, and filtering implemented. Shipping and advanced AI features pending).
 - **Commercial Value**: Potential is high due to the premium 3D niche, but currently $0 revenue capability until payments are integrated.
 
 _________________________________________________________________________________________________________________________________________________________________
@@ -71,6 +62,7 @@ This section outlines the path to a fully featured, high-value e-commerce platfo
 - **Value**: High (Flexibility).
 - **Price Impact**: +$200 value.
 
+
 ### 2. Shipment Integration
 - **Description**: Real-time shipping rates and label generation.
 - **Implementation**: Integrate Shippo or EasyPost API. Connect to `Shipment` model.
@@ -86,29 +78,14 @@ This section outlines the path to a fully featured, high-value e-commerce platfo
 - **Value**: **Very High** (Unique selling point).
 - **Price Impact**: +$2000+ value (if working flawlessly).
 
-### 4. User Order History
-- **Description**: Page for users to view their past orders and status.
-- **Implementation**: Create `/store/orders` page. Fetch orders by `userId`.
-- **Difficulty**: Low.
-- **Value**: High (User experience).
-- **Price Impact**: +$100 value.
+6. 404 and loading custom pages
 
-### 5. Admin Email Broadcasting
-- **Description**: Admin tool to send mass emails (announcements, events, discounts) to all users.
-- **Implementation**: Integrate Resend/SendGrid. Build admin compose UI. Background job for bulk sending.
-- **Difficulty**: Medium.
-- **Value**: High (Marketing & Engagement).
-- **Price Impact**: +$300 value.
+7.
+
 ### Business Suggestions
 1.  **Email Marketing**: Integrate **Resend** or **SendGrid** to send abandoned cart emails and order confirmations. This is the highest ROI activity you can add.
 2.  **SEO & Metadata**: Ensure every product page has dynamic `metadata` (OpenGraph images, titles, descriptions) so links look good on social media.
 3.  **Trust Signals**: Add a "Verified by Stripe" badge and more detailed return policies to the footer to increase conversion rates.
-
-### 6. filter and sort functionss in the catrgory:
-
-
-
-
 
 
 ### Development Suggestions
@@ -118,8 +95,4 @@ This section outlines the path to a fully featured, high-value e-commerce platfo
 4.  **Accessibility**: Audit the site with **Lighthouse**. Ensure all buttons have `aria-labels` and colors have sufficient contrast.
 
 
-section 4: proplems.
-1. all product ratings is 5 stars and unchangeable 
-2. admin dashboard does not take the actual money,it takes the checkout price even if the user just didnt buy in stripe and left.
-3. i want to make it easier for admin to edit multiple products at once.
-4, show that there was a discount on the product card.
+### Section 4: Current Issues
