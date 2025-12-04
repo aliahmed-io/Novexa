@@ -41,6 +41,7 @@ Novexa is a modern, high-performance e-commerce application built with the lates
 - **Filter and Sort Functions**: Product filtering by price/color and sorting by price/popularity/newness.
 - **Admin Email Broadcasting**: Tool for admins to send mass announcements to all users via Resend.
 - **Transactional Emails**: Automated order confirmation and delivery notification emails.
+- **AI Image Generation**: Integrated **Pollinations.ai (Flux Model)** for free, unlimited, high-quality product image generation.
 
 ### Realistic Rating
 - **Code Quality**: 8.5/10 (Modern practices, clean structure).
@@ -78,9 +79,28 @@ This section outlines the path to a fully featured, high-value e-commerce platfo
 - **Value**: **Very High** (Unique selling point).
 - **Price Impact**: +$2000+ value (if working flawlessly).
 
-6. 404 and loading custom pages
 
-7.
+### 4. 404 and loading custom pages
+- **Implementation**: Build UI for `404` and `loading` pages CRUD operations.
+- **Difficulty**: Low (Standard CRUD).
+- **Value**: High (Flexibility).
+- **Price Impact**: +$200 value.
+
+
+### 5.multi language support 
+- **Description**: Allow admins to create/edit languages via dashboard.
+- **Implementation**: Build UI for `Language` model CRUD operations. Update `Product` form to select from dynamic languages.
+- **Difficulty**: Low (Standard CRUD).
+- **Value**: High (Flexibility).
+- **Price Impact**: +$200 value.
+
+
+### 6.multi currency support 
+- **Description**: Allow admins to create/edit currencies via dashboard.
+- **Implementation**: Build UI for `Currency` model CRUD operations. Update `Product` form to select from dynamic currencies.
+- **Difficulty**: Low (Standard CRUD).
+- **Value**: High (Flexibility).
+- **Price Impact**: +$200 value.
 
 ### Business Suggestions
 1.  **Email Marketing**: Integrate **Resend** or **SendGrid** to send abandoned cart emails and order confirmations. This is the highest ROI activity you can add.

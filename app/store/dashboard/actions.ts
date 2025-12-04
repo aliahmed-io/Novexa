@@ -18,41 +18,50 @@ export async function generateProductImage(
         return { success: false, message: "Unauthorized" };
     }
 
-    let prompt = "";
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        return { success: false, message: "API Key Missing" };
+    }
 
+    let prompt = "";
     if (mode === 'text') {
-        prompt = prepareImageGenContext(name, description, category);
-    } else if (mode === 'sequence' && sourceImages.length > 0) {
-        // Use Gemini Vision to analyze style
-        // For now, we'll just mock the prompt generation or use a simple string if no API key
-        // In real implementation: Call Gemini with sourceImages[0] and analyzeImageStylePrompt()
-        prompt = `Create a product image for ${name} that matches the style of the provided reference: Studio lighting, minimalist background.`;
-    } else if (mode === 'improve' && sourceImages.length > 0) {
-        // Use Gemini Vision to enhance description
-        prompt = `Create a high-quality, 4k professional product photo of ${name} based on the provided reference.`;
-    } else {
-        prompt = prepareImageGenContext(name, description, category);
+        prompt = `Professional product photography of ${name}, ${category}. ${description}. High quality, studio lighting, 4k, photorealistic.`;
+    } else if (mode === 'sequence') {
+        // Generate a different angle or context
+        const angles = ["Side profile view", "Top down view", "Detailed close-up", "Lifestyle context"];
+        const randomAngle = angles[Math.floor(Math.random() * angles.length)];
+        prompt = `Professional product photography of ${name}, ${category}. ${description}. ${randomAngle}. Consistent style, studio lighting, 4k.`;
+    } else if (mode === 'improve') {
+        prompt = `High-end commercial product photography of ${name}, ${category}. ${description}. Award winning photography, 8k resolution, perfect lighting.`;
     }
 
     console.log(`Generating image [${mode}] with prompt:`, prompt);
 
-    // Mock Image Generation (Flux/Midjourney)
-    // In a real app, you would fetch(FLUX_API_URL, { prompt })
-    await new Promise((resolve) => setTimeout(resolve, 3000)); // Simulate delay
+    try {
+        // Use Pollinations.ai (Free, Unlimited, Strong models like Flux)
+        // We fetch the image and convert to Base64 to ensure it's static and doesn't rely on external hosting persistence
+        const encodedPrompt = encodeURIComponent(prompt);
+        const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&model=flux&nologo=true`;
 
-    // Return different placeholder images based on mode to show "variety"
-    const placeholders = [
-        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=2070&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=2012&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=1964&auto=format&fit=crop"
-    ];
+        const response = await fetch(url);
 
-    const randomImage = placeholders[Math.floor(Math.random() * placeholders.length)];
+        if (!response.ok) {
+            throw new Error(`Pollinations API Error: ${response.statusText}`);
+        }
 
-    return {
-        success: true,
-        imageUrl: randomImage,
-    };
+        const buffer = await response.arrayBuffer();
+        const base64Image = Buffer.from(buffer).toString("base64");
+        const imageUrl = `data:image/jpeg;base64,${base64Image}`;
+
+        return {
+            success: true,
+            imageUrl: imageUrl,
+        };
+
+    } catch (error) {
+        console.error("Image Generation Failed:", error);
+        return { success: false, message: "Failed to generate image" };
+    }
 }
 
 export async function chatWithBusinessAdvisor(history: { role: string; parts: { text: string }[] }[], message: string) {
