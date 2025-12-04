@@ -31,9 +31,8 @@ import { Sparkles, Loader2 } from "lucide-react";
 
 import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
-import { type $Enums } from "@prisma/client";
+import { type $Enums, Category } from "@prisma/client";
 import { productSchema } from "@/lib/zodSchemas";
-import { categories } from "@/lib/Categories";
 import { UploadDropzone } from "@/lib/uploadthing";
 import { Button } from "../ui/button";
 
@@ -46,15 +45,17 @@ interface iAppProps {
     price: number;
     images: string[];
     category: string;
+    mainCategory: $Enums.MainCategory;
     isFeatured: boolean;
     discountPercentage: number;
     modelUrl: string | null;
     meshyStatus: string | null;
     meshyProgress: number | null;
   };
+  categories: Category[];
 }
 
-export function EditForm({ data }: iAppProps) {
+export function EditForm({ data, categories }: iAppProps) {
   const [images, setImages] = useState<string[]>(data.images);
   const [lastResult, action] = useActionState(editProduct, undefined);
   const [form, fields] = useForm({
@@ -121,6 +122,7 @@ export function EditForm({ data }: iAppProps) {
                 defaultValue={data.price}
                 type="number"
                 placeholder="$55"
+                min={1}
               />
               <p className="text-red-500">{fields.price.errors}</p>
             </div>
@@ -169,19 +171,38 @@ export function EditForm({ data }: iAppProps) {
             </div>
 
             <div className="flex flex-col gap-3">
-              <Label>Category</Label>
+              <Label>Main Category</Label>
+              <Select
+                key={fields.mainCategory.key}
+                name={fields.mainCategory.name}
+                defaultValue={data.mainCategory}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Main Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="MEN">Men</SelectItem>
+                  <SelectItem value="WOMEN">Women</SelectItem>
+                  <SelectItem value="KIDS">Kids</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-red-500">{fields.mainCategory.errors}</p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Label>Sub Category</Label>
               <Select
                 key={fields.category.key}
                 name={fields.category.name}
-                defaultValue={data.category}
+                defaultValue={data.category} // This is the ID
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select Category" />
+                  <SelectValue placeholder="Select Sub Category" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.name}>
-                      {category.title}
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -108,33 +108,6 @@ export async function createProduct(prevState: unknown, formData: FormData) {
     urlString.split(",").map((url) => url.trim())
   );
 
-  const categorySlug = submission.value.category.toLowerCase().replace(/ /g, "-");
-  let categoryId = "";
-
-  // Check by slug first
-  let existingCategory = await prisma.category.findUnique({
-    where: { slug: categorySlug },
-  });
-
-  if (!existingCategory) {
-    existingCategory = await prisma.category.findUnique({
-      where: { name: submission.value.category },
-    });
-  }
-
-  if (existingCategory) {
-    categoryId = existingCategory.id;
-  } else {
-    const newCategory = await prisma.category.create({
-      data: {
-        name: submission.value.category,
-        slug: categorySlug,
-        description: "Created via product creation",
-      },
-    });
-    categoryId = newCategory.id;
-  }
-
   const created = await prisma.product.create({
     data: {
       name: submission.value.name,
@@ -142,7 +115,8 @@ export async function createProduct(prevState: unknown, formData: FormData) {
       status: submission.value.status,
       price: submission.value.price,
       images: flattenUrls,
-      categoryId: categoryId,
+      categoryId: submission.value.category,
+      mainCategory: submission.value.mainCategory,
       isFeatured: submission.value.isFeatured === true ? true : false,
       discountPercentage: submission.value.discountPercentage,
     },
@@ -175,33 +149,6 @@ export async function editProduct(prevState: any, formData: FormData) {
     urlString.split(",").map((url) => url.trim())
   );
 
-  const categorySlug = submission.value.category.toLowerCase().replace(/ /g, "-");
-  let categoryId = "";
-
-  // Check by slug first
-  let existingCategory = await prisma.category.findUnique({
-    where: { slug: categorySlug },
-  });
-
-  if (!existingCategory) {
-    existingCategory = await prisma.category.findUnique({
-      where: { name: submission.value.category },
-    });
-  }
-
-  if (existingCategory) {
-    categoryId = existingCategory.id;
-  } else {
-    const newCategory = await prisma.category.create({
-      data: {
-        name: submission.value.category,
-        slug: categorySlug,
-        description: "Created via product edit",
-      },
-    });
-    categoryId = newCategory.id;
-  }
-
   const productId = formData.get("productId") as string;
   const updated = await prisma.product.update({
     where: {
@@ -210,7 +157,8 @@ export async function editProduct(prevState: any, formData: FormData) {
     data: {
       name: submission.value.name,
       description: submission.value.description,
-      categoryId: categoryId,
+      categoryId: submission.value.category,
+      mainCategory: submission.value.mainCategory,
       price: submission.value.price,
       isFeatured: submission.value.isFeatured === true ? true : false,
       status: submission.value.status,

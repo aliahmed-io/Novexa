@@ -6,9 +6,16 @@ export const productSchema = z.object({
   status: z.enum(["draft", "published", "archived"]),
   price: z.number().min(1),
   images: z.array(z.string()).min(1, "At least one image is required"),
-  category: z.enum(["men", "women", "kids"]),
+  category: z.string().min(1, "Sub Category is required"),
+  mainCategory: z.enum(["MEN", "WOMEN", "KIDS"]),
   isFeatured: z.boolean().optional(),
   discountPercentage: z.number().min(0).max(100).default(0),
+});
+
+export const categorySchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  image: z.string().optional(),
 });
 
 export const reviewSchema = z.object({

@@ -102,6 +102,24 @@ This section outlines the path to a fully featured, high-value e-commerce platfo
 - **Value**: High (Flexibility).
 - **Price Impact**: +$200 value.
 
+### 7.preformace optimization 
+- **lazy loading**
+2.  **Rate Limiting**: Use **Upstash Ratelimit** on your AI routes (`/api/search`, `/api/assistant`) to prevent abuse and control costs.
+3.  **Image Optimization**: Ensure all user-uploaded images (UploadThing) are automatically resized and compressed. Large images are the #1 cause of slow sites.
+
+
+### 8. add more flixibility to admin dashboard.
+- **make the main showing info be selected by user , and changed easily**
+- **multiple update at once**: user select every product he want the change to applied on and can change them all at once easily. show confirmation massage.
+
+
+### 9. costumer contact page 
+- **Description**: allow users to contact admin if an error occured
+- **Implementation**: Build UI for `Contact` model CRUD operations.
+- **Difficulty**: Low (Standard CRUD).
+- **Value**: High (Flexibility).
+- **Price Impact**: +$200 value.
+
 ### Business Suggestions
 1.  **Email Marketing**: Integrate **Resend** or **SendGrid** to send abandoned cart emails and order confirmations. This is the highest ROI activity you can add.
 2.  **SEO & Metadata**: Ensure every product page has dynamic `metadata` (OpenGraph images, titles, descriptions) so links look good on social media.
@@ -110,9 +128,7 @@ This section outlines the path to a fully featured, high-value e-commerce platfo
 
 ### Development Suggestions
 1.  **Testing**: Implement **Playwright** for End-to-End (E2E) testing. Critical for payments and checkout flows to ensure they never break.
-2.  **Rate Limiting**: Use **Upstash Ratelimit** on your AI routes (`/api/search`, `/api/assistant`) to prevent abuse and control costs.
-3.  **Image Optimization**: Ensure all user-uploaded images (UploadThing) are automatically resized and compressed. Large images are the #1 cause of slow sites.
-4.  **Accessibility**: Audit the site with **Lighthouse**. Ensure all buttons have `aria-labels` and colors have sufficient contrast.
+2.  **Accessibility**: Audit the site with **Lighthouse**. Ensure all buttons have `aria-labels` and colors have sufficient contrast.
 
 
 ### Section 4: Current Issues

@@ -25,6 +25,31 @@ function Model({ url }: { url: string }) {
     return <primitive object={scene} />;
 }
 
+import React from "react";
+
+class ErrorBoundary extends React.Component<{ children: React.ReactNode, onError: () => void }, { hasError: boolean }> {
+    constructor(props: { children: React.ReactNode, onError: () => void }) {
+        super(props);
+        this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError(error: any) {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error: any, errorInfo: any) {
+        console.error("3D Viewer Error:", error, errorInfo);
+        this.props.onError();
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return null;
+        }
+        return this.props.children;
+    }
+}
+
 export function ThreeDViewer({ modelUrl, images }: ThreeDViewerProps) {
     const [isInteracting, setIsInteracting] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -43,6 +68,11 @@ export function ThreeDViewer({ modelUrl, images }: ThreeDViewerProps) {
         setIsInteracting(true);
         setIsLoading(true);
         setHasError(false);
+    };
+
+    const handleError = () => {
+        setHasError(true);
+        setIsLoading(false);
     };
 
     return (
@@ -81,15 +111,17 @@ export function ThreeDViewer({ modelUrl, images }: ThreeDViewerProps) {
                         transition={{ duration: 0.5 }}
                         className="absolute inset-0 w-full h-full z-10 bg-white"
                     >
-                        <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 0, 150], fov: 50 }}>
-                            <Suspense fallback={null}>
-                                <Stage environment="city" intensity={0.6} shadows="contact">
-                                    <Model url={modelUrl} />
-                                </Stage>
-                                <OrbitControls makeDefault autoRotate autoRotateSpeed={0.5} minPolarAngle={0} maxPolarAngle={Math.PI / 1.9} />
-                                <Environment preset="city" />
-                            </Suspense>
-                        </Canvas>
+                        <ErrorBoundary onError={handleError}>
+                            <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 0, 150], fov: 50 }}>
+                                <Suspense fallback={null}>
+                                    <Stage environment="city" intensity={0.6} shadows="contact">
+                                        <Model url={modelUrl} />
+                                    </Stage>
+                                    <OrbitControls makeDefault autoRotate autoRotateSpeed={0.5} minPolarAngle={0} maxPolarAngle={Math.PI / 1.9} />
+                                    <Environment preset="city" />
+                                </Suspense>
+                            </Canvas>
+                        </ErrorBoundary>
                     </motion.div>
                 )}
             </AnimatePresence>

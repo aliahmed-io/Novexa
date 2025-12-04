@@ -17,6 +17,15 @@ async function getData(productId: string) {
   return data;
 }
 
+async function getCategories() {
+  const data = await prisma.category.findMany({
+    orderBy: {
+      name: "asc",
+    },
+  });
+  return data;
+}
+
 export default async function EditRoute({
   params,
 }: {
@@ -25,5 +34,6 @@ export default async function EditRoute({
   noStore();
   const { id } = await params;
   const data = await getData(id);
-  return <EditForm data={data} />;
+  const categories = await getCategories();
+  return <EditForm data={data} categories={categories} />;
 }

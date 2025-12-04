@@ -77,7 +77,7 @@ export async function chatWithBusinessAdvisor(history: { role: string; parts: { 
     const apiKey = process.env.GEMINI_API_KEY;
     // Fallback to a default model if not set, or handle error. 
     // Assuming GEMINI_MODEL is set or we use a default like 'gemini-pro'
-    const modelId = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+    const modelId = process.env.GEMINI_MODEL || "gemini-2.5-pro";
 
     if (!apiKey) {
         return { success: false, message: "AI Configuration Missing" };

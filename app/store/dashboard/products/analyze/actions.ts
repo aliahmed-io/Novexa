@@ -35,7 +35,7 @@ export async function analyzeProductImage(productId: string, imageUrl: string) {
 
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash", // Use a vision-capable model
+            model: "gemini-2.5-flash", // Updated to 2.5 as requested
             generationConfig: { responseMimeType: "application/json" },
         });
 

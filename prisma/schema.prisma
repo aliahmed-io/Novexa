@@ -29,8 +29,9 @@ model Product {
   price       Int
   images      String[]
 
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId   String
+  category     Category     @relation(fields: [categoryId], references: [id])
+  mainCategory MainCategory @default(MEN)
 
   isFeatured Boolean  @default(false)
   createdAt  DateTime @default(now())
@@ -179,6 +180,12 @@ enum ShipmentStatus {
   SHIPPED
   DELIVERED
   RETURNED
+}
+
+enum MainCategory {
+  MEN
+  WOMEN
+  KIDS
 }
 
 model DailyStat {

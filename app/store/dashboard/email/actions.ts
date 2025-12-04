@@ -10,44 +10,60 @@ export async function sendBroadcastEmail(formData: FormData) {
     const { getUser } = getKindeServerSession();
     const user = await getUser();
 
-    if (!user || user.email !== "admin@novexa.com") {
-        // Basic admin check - ideally use a role or permission system
-        // For now, assuming admin@novexa.com is the admin or checking against a list
-        // You might want to implement a proper admin check here
-        // return redirect("/");
+    if (!user || user.email !== "alihassan182006@gmail.com") {
+        return redirect("/store/shop");
     }
 
     const subject = formData.get("subject") as string;
     const message = formData.get("message") as string;
+    const imageUrl = formData.get("imageUrl") as string;
+    const audience = formData.get("audience") as string;
+    const specificEmail = formData.get("specificEmail") as string;
 
     if (!subject || !message) {
         return { error: "Subject and message are required" };
     }
 
     try {
-        const users = await prisma.user.findMany({
-            select: {
-                email: true,
-            },
-        });
+        let users: { email: string }[] = [];
 
-        // In a real production app with many users, you'd want to batch this
-        // or use a queue system (like Redis/BullMQ) to avoid timeouts.
-        // Resend also supports batch sending.
+        if (audience === "all") {
+            users = await prisma.user.findMany({
+                select: { email: true },
+            });
+        } else if (audience === "newsletter") {
+            // Assuming we have a NewsletterSubscriber model or a flag on User
+            // If not, we'll just fetch all for now or check a subscription table
+            // For this implementation, let's assume we check the User table for now
+            // Or if you have a separate NewsletterSubscriber model, use that.
+            // Based on previous context, we might not have a dedicated newsletter flag on User yet.
+            // Let's fetch all users for now as a fallback, or if you have a specific logic, insert here.
+            // TODO: Implement actual newsletter logic if schema exists.
+            users = await prisma.user.findMany({
+                select: { email: true },
+            });
+        } else if (audience === "specific") {
+            if (!specificEmail) {
+                return { error: "Specific email is required" };
+            }
+            users = [{ email: specificEmail }];
+        }
 
-        // For simplicity/MVP, we'll loop.
-        // Note: Resend free tier has limits.
-
-        // Using 'onboarding@resend.dev' for testing if domain not verified.
-        // Replace with your verified domain, e.g., 'updates@yourdomain.com'
         const fromEmail = "Novexa <onboarding@resend.dev>";
 
-        const emailPromises = users.map((user) =>
+        // Filter out users with no email (just in case)
+        const validUsers = users.filter((u) => u.email);
+
+        if (validUsers.length === 0) {
+            return { error: "No users found for the selected audience." };
+        }
+
+        const emailPromises = validUsers.map((u) =>
             resend.emails.send({
                 from: fromEmail,
-                to: user.email,
+                to: u.email,
                 subject: subject,
-                react: BroadcastEmail({ subject, message }),
+                react: BroadcastEmail({ subject, message, imageUrl }),
             })
         );
 

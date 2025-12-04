@@ -13,7 +13,15 @@ import { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 
-export function FilterComponent() {
+interface iAppProps {
+    categories?: {
+        id: string;
+        name: string;
+        slug: string;
+    }[];
+}
+
+export function FilterComponent({ categories }: iAppProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -21,6 +29,7 @@ export function FilterComponent() {
     const currentSort = searchParams.get("sort") || "";
     const currentPrice = searchParams.get("price") || "";
     const currentColor = searchParams.get("color") || "";
+    const currentCategory = searchParams.get("category") || "";
 
     // Helper to update URL
     const createQueryString = useCallback(
@@ -48,17 +57,31 @@ export function FilterComponent() {
         router.push("?" + createQueryString("color", value));
     };
 
+    const handleCategoryChange = (value: string) => {
+        // If we select a sub-category, we might want to navigate to that category page directly?
+        // OR we just filter by it if the backend supports it.
+        // The user said: "in the user main category page we add another filter by category which lists all categories the admin created."
+        // So if I am on "Men", I filter by "Sneakers".
+        // But my backend logic for `getData` handles `productCategory` (the path param) OR `category` (search param)?
+        // Wait, `getData` checks `productCategory` (path param).
+        // It does NOT check `searchParams.category`.
+
+        // I need to update `getData` to ALSO check `searchParams.category` if it's provided.
+        // But for now, let's implement the UI.
+        router.push("?" + createQueryString("category", value));
+    };
+
     const clearFilters = () => {
         router.push(window.location.pathname);
     };
 
-    const hasFilters = currentSort || currentPrice || currentColor;
+    const hasFilters = currentSort || currentPrice || currentColor || currentCategory;
 
     return (
         <div className="bg-white p-4 rounded-lg border shadow-sm mb-6">
-            <div className="flex flex-col md:flex-row gap-4 items-end">
+            <div className="flex flex-col md:flex-row gap-4 items-end flex-wrap">
                 {/* Sort By */}
-                <div className="w-full md:w-1/4">
+                <div className="w-full md:w-48">
                     <Label className="mb-2 block text-sm font-medium">Sort By</Label>
                     <Select value={currentSort} onValueChange={handleSortChange}>
                         <SelectTrigger>
@@ -73,8 +96,28 @@ export function FilterComponent() {
                     </Select>
                 </div>
 
+                {/* Sub Category Filter */}
+                {categories && categories.length > 0 && (
+                    <div className="w-full md:w-48">
+                        <Label className="mb-2 block text-sm font-medium">Sub Category</Label>
+                        <Select value={currentCategory} onValueChange={handleCategoryChange}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select Category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Categories</SelectItem>
+                                {categories.map((category) => (
+                                    <SelectItem key={category.id} value={category.slug}>
+                                        {category.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                )}
+
                 {/* Price Filter */}
-                <div className="w-full md:w-1/4">
+                <div className="w-full md:w-48">
                     <Label className="mb-2 block text-sm font-medium">Price Range</Label>
                     <Select value={currentPrice} onValueChange={handlePriceChange}>
                         <SelectTrigger>
@@ -91,7 +134,7 @@ export function FilterComponent() {
                 </div>
 
                 {/* Color Filter */}
-                <div className="w-full md:w-1/4">
+                <div className="w-full md:w-48">
                     <Label className="mb-2 block text-sm font-medium">Color</Label>
                     <Select value={currentColor} onValueChange={handleColorChange}>
                         <SelectTrigger>
