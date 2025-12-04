@@ -38,19 +38,29 @@ export function UserDropdown({ email, name, userImage, isDashboardView = false }
         {isDashboardView ? (
           <>
             <DropdownMenuItem asChild>
+              <Link href="/store/orders">My Orders</Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
               <Link href="/store/shop">Back to Store</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
           </>
         ) : (
-          email === "alihassan182006@gmail.com" && (
-            <>
-              <DropdownMenuItem asChild>
-                <Link href="/store/dashboard">Dashboard</Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-            </>
-          )
+          <>
+            <DropdownMenuItem asChild>
+              <Link href="/store/orders">My Orders</Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            {email === "alihassan182006@gmail.com" && (
+              <>
+                <DropdownMenuItem asChild>
+                  <Link href="/store/dashboard">Dashboard</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
+          </>
         )}
         <DropdownMenuItem asChild>
           <LogoutLink>Log out</LogoutLink>

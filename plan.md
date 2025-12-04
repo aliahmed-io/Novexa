@@ -86,24 +86,14 @@ This section outlines the path to a fully featured, high-value e-commerce platfo
 - **Value**: **Very High** (Unique selling point).
 - **Price Impact**: +$2000+ value (if working flawlessly).
 
-
-### 4. Discount System
-- **Description**: Coupon codes for checkout.
-- **Implementation**: UI for `Discount` model. Logic in checkout to validate and apply percentage off.
-- **Difficulty**: Low.
-- **Value**: Medium (Marketing tool).
-- **Price Impact**: +$150 value.
-
-### 5. Review System
-
-### 6. User Order History
+### 4. User Order History
 - **Description**: Page for users to view their past orders and status.
 - **Implementation**: Create `/store/orders` page. Fetch orders by `userId`.
 - **Difficulty**: Low.
 - **Value**: High (User experience).
 - **Price Impact**: +$100 value.
 
-### 7. Admin Email Broadcasting
+### 5. Admin Email Broadcasting
 - **Description**: Admin tool to send mass emails (announcements, events, discounts) to all users.
 - **Implementation**: Integrate Resend/SendGrid. Build admin compose UI. Background job for bulk sending.
 - **Difficulty**: Medium.
@@ -113,6 +103,13 @@ This section outlines the path to a fully featured, high-value e-commerce platfo
 1.  **Email Marketing**: Integrate **Resend** or **SendGrid** to send abandoned cart emails and order confirmations. This is the highest ROI activity you can add.
 2.  **SEO & Metadata**: Ensure every product page has dynamic `metadata` (OpenGraph images, titles, descriptions) so links look good on social media.
 3.  **Trust Signals**: Add a "Verified by Stripe" badge and more detailed return policies to the footer to increase conversion rates.
+
+### 6. filter and sort functionss in the catrgory:
+
+
+
+
+
 
 ### Development Suggestions
 1.  **Testing**: Implement **Playwright** for End-to-End (E2E) testing. Critical for payments and checkout flows to ensure they never break.
