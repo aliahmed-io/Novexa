@@ -7,6 +7,10 @@ import type { Product } from "@/lib/assistantTypes";
 const RANKING_SYSTEM_PROMPT = `You are a ranking engine for Novexa's shoe store search.
 Your job is to analyze a list of products and the user's search query.
 
+CONTEXT:
+Products have a "Main Category" (MEN, WOMEN, KIDS) and a "Sub Category" (e.g., Sneakers, Boots, Heels).
+Use this structure to refine your relevance matching.
+
 TASKS:
 1. Identify which products are "Recommended" matches (high relevance).
 2. Reorder the products so the best matches come first.
@@ -14,7 +18,7 @@ TASKS:
 RULES:
 - ONLY use the products provided in the JSON list.
 - Do NOT invent new products or IDs.
-- Focus on matching query terms to: name, description, color, gender, category, tags.
+- Focus on matching query terms to: name, description, color, mainCategory, subCategory, tags.
 - CRITICAL: If a product's name or description contains a brand mentioned in the query (e.g. "Nike", "Adidas") OR a color mentioned in the query, it is a STRONG CANDIDATE for recommendation.
 - Be generous with recommendations. If it's a good match, recommend it.
 - Return a JSON object with two fields:
@@ -51,12 +55,8 @@ function getGeminiModel() {
     throw new Error("Missing GEMINI_API_KEY environment variable");
   }
 
-  const modelId = process.env.GEMINI_MODEL;
-  if (!modelId) {
-    throw new Error(
-      "Missing GEMINI_MODEL environment variable. Set it to a valid Gemini model ID, e.g. 'gemini-2.5-flash'."
-    );
-  }
+  // Hardcoded to gemini-2.5-flash as requested
+  const modelId = "gemini-2.5-flash";
 
   const genAI = new GoogleGenerativeAI(apiKey);
   return genAI.getGenerativeModel({
@@ -71,7 +71,7 @@ function normalizeProducts(rows: any[]): Product[] {
     id: p.id,
     name: p.name,
     price: p.price,
-    gender: (p.gender as string) ?? "unisex",
+    gender: (p.mainCategory as string) ?? "unisex", // Map mainCategory to gender
     color: (() => {
       const dbColor = (p.color as string | undefined)?.toLowerCase() ?? "";
       if (dbColor) return dbColor;
@@ -83,7 +83,7 @@ function normalizeProducts(rows: any[]): Product[] {
       }
       return "";
     })(),
-    category: String(p.category ?? ""),
+    category: p.Category?.name ?? String(p.category ?? ""), // Use dynamic category name
     description: p.description ?? "",
     features: (p.features as string[]) ?? [],
     url: (p.url as string) ?? "",
@@ -92,6 +92,7 @@ function normalizeProducts(rows: any[]): Product[] {
     style: (p.style as string) ?? "",
     height: (p.height as string) ?? "",
     pattern: (p.pattern as string) ?? "",
+    mainCategory: p.mainCategory, // Add mainCategory
   }));
 }
 
@@ -117,7 +118,15 @@ async function rerankWithGemini(query: string, products: Product[]): Promise<Pro
               text:
                 `User search query: ${query}\n` +
                 "Here is the current product list as JSON.\n" +
-                JSON.stringify(products, null, 2),
+                JSON.stringify(products.map(p => ({
+                  id: p.id,
+                  name: p.name,
+                  description: p.description,
+                  mainCategory: (p as any).mainCategory,
+                  subCategory: p.category,
+                  price: p.price,
+                  color: p.color
+                })), null, 2),
             },
           ],
         },
@@ -151,15 +160,6 @@ async function rerankWithGemini(query: string, products: Product[]): Promise<Pro
       if (typeof id !== "string") continue;
       const prod = byId.get(id);
       if (prod && !seen.has(id)) {
-        // Attach the recommendation flag
-        // We need to cast to any or extend the type if we want to add properties dynamically,
-        // but since we are sending this to frontend, we can just add it.
-        // However, TypeScript might complain if Product interface doesn't have it.
-        // For now, let's assume we can extend it or the frontend will handle it.
-        // Actually, let's update the Product type in the frontend or just add it here.
-        // Since I can't easily change the shared type definition file right now without finding it,
-        // I will just add it and cast as any if needed, but wait, `Product` is imported.
-        // I'll check `lib/assistantTypes` later. For now, I'll add the property.
         (prod as any).isAiRecommended = recommendedSet.has(id);
         ranked.push(prod);
         seen.add(id);
@@ -202,6 +202,12 @@ export async function POST(req: NextRequest) {
         pattern: true,
         tags: true,
         features: true,
+        mainCategory: true, // Fetch mainCategory
+        Category: { // Fetch related Category
+          select: {
+            name: true
+          }
+        }
       },
     });
 

@@ -39,9 +39,10 @@ Novexa is a modern, high-performance e-commerce application built with the lates
 - **Revenue Analytics Fix**: Corrected dashboard revenue calculation to track only successful Stripe payments.
 - **User Order History**: Page for users to view their past orders and status.
 - **Filter and Sort Functions**: Product filtering by price/color and sorting by price/popularity/newness.
-- **Admin Email Broadcasting**: Tool for admins to send mass announcements to all users via Resend.
+- **Admin Email Broadcasting**: Tool for admins to send mass announcements to all users via Resend, with audience segmentation and image support.
 - **Transactional Emails**: Automated order confirmation and delivery notification emails.
 - **AI Image Generation**: Integrated **Pollinations.ai (Flux Model)** for free, unlimited, high-quality product image generation.
+- **Dynamic Categories**: Admin system to create, edit, and delete product categories with sub-category support.
 
 ### Realistic Rating
 - **Code Quality**: 8.5/10 (Modern practices, clean structure).
@@ -55,16 +56,7 @@ ________________________________________________________________________________
 This section outlines the path to a fully featured, high-value e-commerce platform.
 
 
-
-### 1. Dynamic Categories (Admin)
-- **Description**: Allow admins to create/edit categories via dashboard.
-- **Implementation**: Build UI for `Category` model CRUD operations. Update `Product` form to select from dynamic categories.
-- **Difficulty**: Low (Standard CRUD).
-- **Value**: High (Flexibility).
-- **Price Impact**: +$200 value.
-
-
-### 2. Shipment Integration
+### 1. Shipment Integration
 - **Description**: Real-time shipping rates and label generation.
 - **Implementation**: Integrate Shippo or EasyPost API. Connect to `Shipment` model.
 - **Difficulty**: Medium/High (Complex logic with carriers).
@@ -72,7 +64,7 @@ This section outlines the path to a fully featured, high-value e-commerce platfo
 - **Price Impact**: +$500 value.
 
 
-### 3. AI Dressing Room (Virtual Try-On)
+### 2. AI Dressing Room (Virtual Try-On)
 - **Description**: User uploads photo + selects shoe -> AI generates image of them wearing it.
 - **Implementation**: Use Replicate API (e.g., IDM-VTON or custom Flux LoRA). Store results in `TryOnSession`.
 - **Difficulty**: **High** (AI model tuning, API costs, latency).
@@ -80,14 +72,14 @@ This section outlines the path to a fully featured, high-value e-commerce platfo
 - **Price Impact**: +$2000+ value (if working flawlessly).
 
 
-### 4. 404 and loading custom pages
+### 3. 404 and loading custom pages
 - **Implementation**: Build UI for `404` and `loading` pages CRUD operations.
 - **Difficulty**: Low (Standard CRUD).
 - **Value**: High (Flexibility).
 - **Price Impact**: +$200 value.
 
 
-### 5.multi language support 
+### 4.multi language support 
 - **Description**: Allow admins to create/edit languages via dashboard.
 - **Implementation**: Build UI for `Language` model CRUD operations. Update `Product` form to select from dynamic languages.
 - **Difficulty**: Low (Standard CRUD).
@@ -95,25 +87,25 @@ This section outlines the path to a fully featured, high-value e-commerce platfo
 - **Price Impact**: +$200 value.
 
 
-### 6.multi currency support 
+### 5.multi currency support 
 - **Description**: Allow admins to create/edit currencies via dashboard.
 - **Implementation**: Build UI for `Currency` model CRUD operations. Update `Product` form to select from dynamic currencies.
 - **Difficulty**: Low (Standard CRUD).
 - **Value**: High (Flexibility).
 - **Price Impact**: +$200 value.
 
-### 7.preformace optimization 
+### 6.preformace optimization 
 - **lazy loading**
-2.  **Rate Limiting**: Use **Upstash Ratelimit** on your AI routes (`/api/search`, `/api/assistant`) to prevent abuse and control costs.
-3.  **Image Optimization**: Ensure all user-uploaded images (UploadThing) are automatically resized and compressed. Large images are the #1 cause of slow sites.
+- **Rate Limiting**: Use **Upstash Ratelimit** on your AI routes (`/api/search`, `/api/assistant`) to prevent abuse and control costs.
+- **Image Optimization**: Ensure all user-uploaded images (UploadThing) are automatically resized and compressed. Large images are the #1 cause of slow sites.
 
 
-### 8. add more flixibility to admin dashboard.
+### 7. add more flixibility to admin dashboard.
 - **make the main showing info be selected by user , and changed easily**
 - **multiple update at once**: user select every product he want the change to applied on and can change them all at once easily. show confirmation massage.
 
 
-### 9. costumer contact page 
+### 8. costumer contact page 
 - **Description**: allow users to contact admin if an error occured
 - **Implementation**: Build UI for `Contact` model CRUD operations.
 - **Difficulty**: Low (Standard CRUD).

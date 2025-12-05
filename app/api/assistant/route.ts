@@ -9,6 +9,10 @@ const SYSTEM_PROMPT = `You are Novexa’s Personal Shoe Expert.
 GOAL:
 Help users find the perfect shoes.
 
+CONTEXT:
+Products have a "Main Category" (MEN, WOMEN, KIDS) and a "Sub Category" (e.g., Sneakers, Boots, Heels).
+Use this structure to refine your recommendations.
+
 OUTPUT FORMAT:
 You must return a JSON object with this structure:
 {
@@ -55,7 +59,7 @@ function normalizeProducts(rows: any[]): Product[] {
     id: p.id,
     name: p.name,
     price: p.price,
-    gender: (p.gender as string) ?? "unisex",
+    gender: (p.mainCategory as string) ?? "unisex", // Map mainCategory to gender for compatibility
     color: (() => {
       const dbColor = (p.color as string | undefined)?.toLowerCase() ?? "";
       if (dbColor) return dbColor;
@@ -67,7 +71,7 @@ function normalizeProducts(rows: any[]): Product[] {
       }
       return "";
     })(),
-    category: String(p.category ?? ""),
+    category: p.Category?.name ?? String(p.category ?? ""), // Use dynamic category name
     description: p.description ?? "",
     features: (p.features as string[]) ?? [],
     url: (p.url as string) ?? "",
@@ -76,6 +80,7 @@ function normalizeProducts(rows: any[]): Product[] {
     style: (p.style as string) ?? "",
     height: (p.height as string) ?? "",
     pattern: (p.pattern as string) ?? "",
+    mainCategory: p.mainCategory, // Add mainCategory
   }));
 }
 
@@ -118,18 +123,22 @@ export async function POST(req: NextRequest) {
         pattern: true,
         tags: true,
         features: true,
+        mainCategory: true, // Fetch mainCategory
+        Category: { // Fetch related Category
+          select: {
+            name: true
+          }
+        }
       },
     });
 
     const products = normalizeProducts(rawProducts);
     const filtered = filterProducts(products, message);
-    const limited = filtered.slice(0, 20);
+    const limited = filtered.slice(0, 30); // Increased limit slightly for better context
 
     const genAI = getGeminiClient();
-    const modelId = process.env.GEMINI_MODEL;
-    if (!modelId) {
-      throw new Error("Missing GEMINI_MODEL environment variable.");
-    }
+    // Hardcoded to gemini-2.5-flash as requested
+    const modelId = "gemini-2.5-flash";
 
     const model = genAI.getGenerativeModel({
       model: modelId,
@@ -154,7 +163,15 @@ export async function POST(req: NextRequest) {
             {
               text:
                 "Available Products JSON:\n" +
-                JSON.stringify(limited.map(p => ({ id: p.id, name: p.name, description: p.description, gender: p.gender, price: p.price, color: p.color })), null, 2),
+                JSON.stringify(limited.map(p => ({
+                  id: p.id,
+                  name: p.name,
+                  description: p.description,
+                  mainCategory: (p as any).mainCategory, // Explicitly include mainCategory
+                  subCategory: p.category, // Map category to subCategory
+                  price: p.price,
+                  color: p.color
+                })), null, 2),
             },
             { text: "\n\nUser message:\n" + message },
           ],
