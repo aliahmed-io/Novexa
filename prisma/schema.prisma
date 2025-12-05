@@ -8,51 +8,45 @@ datasource db {
 }
 
 model User {
-  id           String   @id @unique
-  email        String
-  firstName    String
-  lastName     String
-  profileImage String
-  createdAt    DateTime @default(now())
-  orders       Order[]
-
-  tryOnSessions TryOnSession[]
+  id            String         @id @unique
+  email         String
+  firstName     String
+  lastName      String
+  profileImage  String
+  createdAt     DateTime       @default(now())
   chatSessions  ChatSession[]
+  orders        Order[]
   reviews       Review[]
+  tryOnSessions TryOnSession[]
 }
 
 model Product {
-  id          String        @id @default(uuid())
-  name        String
-  description String
-  status      ProductStatus
-  price       Int
-  images      String[]
-
-  categoryId   String
-  category     Category     @relation(fields: [categoryId], references: [id])
-  mainCategory MainCategory @default(MEN)
-
-  isFeatured Boolean  @default(false)
-  createdAt  DateTime @default(now())
-
-  color              String?  @default("")
-  style              String?  @default("")
-  height             String?  @default("")
-  pattern            String?  @default("")
-  tags               String[] @default([])
-  features           String[] @default([])
+  id                 String         @id @default(uuid())
+  name               String
+  description        String
+  status             ProductStatus
+  price              Int
+  images             String[]
+  categoryId         String
+  isFeatured         Boolean        @default(false)
+  createdAt          DateTime       @default(now())
+  color              String?        @default("")
+  style              String?        @default("")
+  height             String?        @default("")
+  pattern            String?        @default("")
+  tags               String[]       @default([])
+  features           String[]       @default([])
   modelUrl           String?
-  discountPercentage Int      @default(0)
-  averageRating      Float    @default(0)
-  reviewCount        Int      @default(0)
-
-  meshyTaskId   String?
-  meshyStatus   String? @default("PENDING") // PENDING, SUCCEEDED, FAILED
-  meshyProgress Int?    @default(0)
-
-  tryOnSessions TryOnSession[]
-  reviews       Review[]
+  discountPercentage Int            @default(0)
+  averageRating      Float          @default(0)
+  reviewCount        Int            @default(0)
+  meshyProgress      Int?           @default(0)
+  meshyStatus        String?        @default("PENDING")
+  meshyTaskId        String?
+  mainCategory       MainCategory   @default(MEN)
+  category           Category       @relation(fields: [categoryId], references: [id])
+  reviews            Review[]
+  tryOnSessions      TryOnSession[]
 }
 
 model Category {
@@ -61,8 +55,8 @@ model Category {
   slug        String    @unique
   description String?
   image       String?
-  products    Product[]
   createdAt   DateTime  @default(now())
+  products    Product[]
 }
 
 model Banner {
@@ -73,17 +67,16 @@ model Banner {
 }
 
 model Order {
-  id        String      @id @default(uuid())
-  status    OrderStatus @default(pending)
-  amount    Int
-  userId    String?
-  createdAt DateTime    @default(now())
-  User      User?       @relation(fields: [userId], references: [id])
-
+  id         String      @id @default(uuid())
+  status     OrderStatus @default(pending)
+  amount     Int
+  userId     String?
+  createdAt  DateTime    @default(now())
+  discountId String?
+  discount   Discount?   @relation(fields: [discountId], references: [id])
+  User       User?       @relation(fields: [userId], references: [id])
   payment    Payment?
   shipment   Shipment?
-  discountId String?
-  discount   Discount? @relation(fields: [discountId], references: [id])
 }
 
 model Payment {
@@ -91,11 +84,11 @@ model Payment {
   amount        Int
   currency      String        @default("USD")
   status        PaymentStatus @default(PENDING)
-  provider      String // e.g., "stripe"
+  provider      String
   transactionId String?
   orderId       String        @unique
-  order         Order         @relation(fields: [orderId], references: [id])
   createdAt     DateTime      @default(now())
+  order         Order         @relation(fields: [orderId], references: [id])
 }
 
 model Shipment {
@@ -103,56 +96,86 @@ model Shipment {
   trackingNumber String?
   carrier        String?
   status         ShipmentStatus @default(PENDING)
+  labelUrl       String?
+  eta            DateTime?
+  shippoId       String?
   orderId        String         @unique
-  order          Order          @relation(fields: [orderId], references: [id])
   createdAt      DateTime       @default(now())
+  order          Order          @relation(fields: [orderId], references: [id])
 }
 
 model Discount {
   id         String    @id @default(uuid())
   code       String    @unique
-  percentage Int // 0-100
+  percentage Int
   isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
   expiresAt  DateTime?
   orders     Order[]
-  createdAt  DateTime  @default(now())
 }
 
 model Review {
   id        String   @id @default(uuid())
-  rating    Int // 1-5
+  rating    Int
   comment   String
   userId    String
-  User      User     @relation(fields: [userId], references: [id])
   productId String
-  Product   Product  @relation(fields: [productId], references: [id])
   createdAt DateTime @default(now())
+  Product   Product  @relation(fields: [productId], references: [id])
+  User      User     @relation(fields: [userId], references: [id])
 }
 
 model TryOnSession {
   id          String   @id @default(uuid())
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
   userImage   String
   productId   String
-  product     Product  @relation(fields: [productId], references: [id])
   resultImage String?
-  status      String   @default("PROCESSING") // PROCESSING, COMPLETED, FAILED
+  status      String   @default("PROCESSING")
   createdAt   DateTime @default(now())
+  product     Product  @relation(fields: [productId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
 }
 
 model ChatSession {
   id        String   @id @default(uuid())
   userId    String?
-  user      User?    @relation(fields: [userId], references: [id])
-  messages  Json // Store chat history
+  messages  Json
   createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model Contact {
+  id        String        @id @default(uuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    ContactStatus @default(PENDING)
+  isRead    Boolean       @default(false)
+  createdAt DateTime      @default(now())
+}
+
+enum ContactStatus {
+  PENDING
+  COMPLETED
+  IGNORED
 }
 
 model playing_with_neon {
   id    Int    @id @default(autoincrement())
   name  String
   value Float? @db.Real
+}
+
+model DailyStat {
+  id            String   @id @default(uuid())
+  date          DateTime @unique @default(now())
+  totalRevenue  Int      @default(0)
+  totalOrders   Int      @default(0)
+  totalVisitors Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 enum OrderStatus {
@@ -186,14 +209,4 @@ enum MainCategory {
   MEN
   WOMEN
   KIDS
-}
-
-model DailyStat {
-  id            String   @id @default(uuid())
-  date          DateTime @unique @default(now())
-  totalRevenue  Int      @default(0)
-  totalOrders   Int      @default(0)
-  totalVisitors Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
 }

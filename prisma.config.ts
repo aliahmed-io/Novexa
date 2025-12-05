@@ -11,6 +11,6 @@ export default defineConfig({
         path: 'prisma/migrations',
     },
     datasource: {
-        url: process.env.DATABASE_URL
+        url: (process.env.DATABASE_URL || "").replace("&channel_binding=require", "") + "&sslmode=no-verify&connect_timeout=30"
     }
 });

@@ -22,13 +22,41 @@ import {
 import { UploadDropzone } from "@/lib/uploadthing";
 import { sendBroadcastEmail } from "@/app/store/dashboard/email/actions";
 import { toast } from "sonner";
-import { Loader2, Send, X } from "lucide-react";
+import { Loader2, Send, X, Check, ChevronsUpDown } from "lucide-react";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 
-export function EmailComposer() {
+interface User {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+}
+
+interface EmailComposerProps {
+    users: User[];
+}
+
+export function EmailComposer({ users }: EmailComposerProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [audience, setAudience] = useState("all");
     const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
+    const [open, setOpen] = useState(false);
 
     async function handleSubmit(formData: FormData) {
         setIsLoading(true);
@@ -41,16 +69,37 @@ export function EmailComposer() {
         // Append audience
         formData.append("audience", audience);
 
+        // Append specific emails if audience is specific
+        if (audience === "specific") {
+            if (selectedEmails.length === 0) {
+                toast.error("Please select at least one recipient");
+                setIsLoading(false);
+                return;
+            }
+            formData.append("specificEmails", JSON.stringify(selectedEmails));
+        }
+
         const result = await sendBroadcastEmail(formData);
 
         if (result?.error) {
             toast.error(result.error);
         } else {
             toast.success("Broadcast sent successfully!");
-            // Reset form logic could go here (e.g. via key or ref)
+            // Reset form logic
+            setAudience("all");
+            setImageUrl(null);
+            setSelectedEmails([]);
         }
         setIsLoading(false);
     }
+
+    const toggleUser = (email: string) => {
+        setSelectedEmails(current =>
+            current.includes(email)
+                ? current.filter(e => e !== email)
+                : [...current, email]
+        );
+    };
 
     return (
         <Card className="max-w-2xl mx-auto">
@@ -71,20 +120,76 @@ export function EmailComposer() {
                             <SelectContent>
                                 <SelectItem value="all">All Users</SelectItem>
                                 <SelectItem value="newsletter">Newsletter Subscribers</SelectItem>
-                                <SelectItem value="specific">Specific Person (Test)</SelectItem>
+                                <SelectItem value="specific">Specific People</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
 
                     {audience === "specific" && (
                         <div className="space-y-2">
-                            <Label>Recipient Email</Label>
-                            <Input
-                                name="specificEmail"
-                                type="email"
-                                placeholder="user@example.com"
-                                required
-                            />
+                            <Label>Recipients</Label>
+                            <Popover open={open} onOpenChange={setOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        aria-expanded={open}
+                                        className="w-full justify-between h-auto min-h-[40px]"
+                                    >
+                                        {selectedEmails.length > 0
+                                            ? `${selectedEmails.length} selected`
+                                            : "Select users..."}
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[400px] p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Search users..." />
+                                        <CommandList>
+                                            <CommandEmpty>No user found.</CommandEmpty>
+                                            <CommandGroup className="max-h-[200px] overflow-auto">
+                                                {users.map((user) => (
+                                                    <CommandItem
+                                                        key={user.id}
+                                                        value={`${user.firstName} ${user.lastName} ${user.email}`}
+                                                        onSelect={() => toggleUser(user.email)}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                "mr-2 h-4 w-4",
+                                                                selectedEmails.includes(user.email)
+                                                                    ? "opacity-100"
+                                                                    : "opacity-0"
+                                                            )}
+                                                        />
+                                                        <div className="flex flex-col">
+                                                            <span>{user.firstName} {user.lastName}</span>
+                                                            <span className="text-xs text-muted-foreground">{user.email}</span>
+                                                        </div>
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+
+                            {selectedEmails.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                    {selectedEmails.map(email => (
+                                        <Badge key={email} variant="secondary" className="flex items-center gap-1">
+                                            {email}
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleUser(email)}
+                                                className="ml-1 hover:text-destructive"
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                        </Badge>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
 

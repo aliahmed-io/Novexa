@@ -63,6 +63,10 @@ export function UserDropdown({ email, name, userImage, isDashboardView = false }
           </>
         )}
         <DropdownMenuItem asChild>
+          <Link href="/store/contact">Contact Us</Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
           <LogoutLink>Log out</LogoutLink>
         </DropdownMenuItem>
       </DropdownMenuContent>

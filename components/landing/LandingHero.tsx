@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { Canvas } from "@react-three/fiber";
-import { Environment, OrbitControls } from "@react-three/drei";
+import { Environment, OrbitControls, Html } from "@react-three/drei";
 import { Suspense } from "react";
-import { HatModel } from "./HatModel";
+import { ShoeModel } from "./ShoeModel";
 
 export function LandingHero() {
     return (
@@ -15,7 +15,7 @@ export function LandingHero() {
                 <div className="flex flex-col items-center text-center space-y-8">
                     <div className="space-y-4 max-w-3xl">
                         <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-                            Redefining Headwear
+                            Redefining Footwear
                         </h1>
                         <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
                             Experience the perfect blend of style, comfort, and innovation.
@@ -38,12 +38,19 @@ export function LandingHero() {
 
                     {/* 3D Model Section */}
                     <div className="w-full max-w-2xl mt-6 relative aspect-square md:aspect-[4/3] lg:aspect-[3/2] bg-transparent flex items-center justify-center overflow-visible z-10">
-                        <Canvas className="w-full h-full" camera={{ position: [0, 0, 5], fov: 45 }}>
+                        <Canvas
+                            className="w-full h-full"
+                            camera={{ position: [0, 0, 5], fov: 45 }}
+                        >
                             <ambientLight intensity={0.5} />
                             <directionalLight position={[10, 10, 5]} intensity={1} />
                             <Environment preset="city" />
-                            <Suspense fallback={null}>
-                                <HatModel />
+                            <Suspense fallback={
+                                <Html center>
+                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                </Html>
+                            }>
+                                <ShoeModel />
                             </Suspense>
                             <OrbitControls enableZoom={false} enablePan={false} minPolarAngle={Math.PI / 2} maxPolarAngle={Math.PI / 2} />
                         </Canvas>

@@ -18,7 +18,7 @@ export async function sendBroadcastEmail(formData: FormData) {
     const message = formData.get("message") as string;
     const imageUrl = formData.get("imageUrl") as string;
     const audience = formData.get("audience") as string;
-    const specificEmail = formData.get("specificEmail") as string;
+    const specificEmailsJson = formData.get("specificEmails") as string;
 
     if (!subject || !message) {
         return { error: "Subject and message are required" };
@@ -43,10 +43,15 @@ export async function sendBroadcastEmail(formData: FormData) {
                 select: { email: true },
             });
         } else if (audience === "specific") {
-            if (!specificEmail) {
-                return { error: "Specific email is required" };
+            if (!specificEmailsJson) {
+                return { error: "Specific recipients are required" };
             }
-            users = [{ email: specificEmail }];
+            try {
+                const emails = JSON.parse(specificEmailsJson) as string[];
+                users = emails.map(email => ({ email }));
+            } catch (e) {
+                return { error: "Invalid recipient data" };
+            }
         }
 
         const fromEmail = "Novexa <onboarding@resend.dev>";

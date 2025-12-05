@@ -1,26 +1,32 @@
 import prisma from "@/lib/db";
 import { Suspense } from "react";
-import { unstable_noStore as noStore } from "next/cache";
+import { unstable_cache } from "next/cache";
 import { LoadingProductCard, ProductCard } from "./ProductCard";
 
 async function getData() {
-  const data = await prisma.product.findMany({
-    where: {
-      status: "published",
-      isFeatured: true,
+  const data = await unstable_cache(
+    async () => {
+      return await prisma.product.findMany({
+        where: {
+          status: "published",
+          isFeatured: true,
+        },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          images: true,
+          price: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 3,
+      });
     },
-    select: {
-      id: true,
-      name: true,
-      description: true,
-      images: true,
-      price: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    take: 3,
-  });
+    ["featured-products"],
+    { revalidate: 3600 }
+  )();
 
   return data;
 }
@@ -37,7 +43,6 @@ export function FeaturedProducts() {
 }
 
 async function LoadFeaturedproducts() {
-  noStore();
   const data = await getData();
 
   return (

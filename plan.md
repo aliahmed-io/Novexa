@@ -43,6 +43,13 @@ Novexa is a modern, high-performance e-commerce application built with the lates
 - **Transactional Emails**: Automated order confirmation and delivery notification emails.
 - **AI Image Generation**: Integrated **Pollinations.ai (Flux Model)** for free, unlimited, high-quality product image generation.
 - **Dynamic Categories**: Admin system to create, edit, and delete product categories with sub-category support.
+- **Admin Dashboard Flexibility**: Customizable columns and bulk updates (Status, Category, Price) for products.
+- **Enhanced Email Selection**: Multi-select UI for targeting specific users in email broadcasts.
+- **Customer Contact System**: Complete support ticket system with public form, admin dashboard, status workflow (Pending/Completed/Ignored), and real-time notifications.
+- **Enhanced Admin Dashboard**: Improved product management with bulk actions, dynamic category filtering, and customizable table views.
+- **Advanced Email Broadcasting**: Segmentation, image support, and multi-recipient selection for targeted marketing.
+- **Performance Optimization**: Implemented caching for hero/products and optimized LCP images.
+- **Custom Loading & 404 Pages**: Added branded 404 page and context-aware loading states (Spinner for landing, Skeletons for store/admin).
 
 ### Realistic Rating
 - **Code Quality**: 8.5/10 (Modern practices, clean structure).
@@ -57,7 +64,7 @@ This section outlines the path to a fully featured, high-value e-commerce platfo
 
 
 ### 1. Shipment Integration
-- **Description**: Real-time shipping rates and label generation.
+- **Description**: Real-time shipping rates and label generation. and dont forget to make the order status automated based on the shipment status.
 - **Implementation**: Integrate Shippo or EasyPost API. Connect to `Shipment` model.
 - **Difficulty**: Medium/High (Complex logic with carriers).
 - **Value**: High (Operational efficiency).
@@ -72,45 +79,16 @@ This section outlines the path to a fully featured, high-value e-commerce platfo
 - **Price Impact**: +$2000+ value (if working flawlessly).
 
 
-### 3. 404 and loading custom pages
-- **Implementation**: Build UI for `404` and `loading` pages CRUD operations.
-- **Difficulty**: Low (Standard CRUD).
-- **Value**: High (Flexibility).
-- **Price Impact**: +$200 value.
 
 
-### 4.multi language support 
-- **Description**: Allow admins to create/edit languages via dashboard.
-- **Implementation**: Build UI for `Language` model CRUD operations. Update `Product` form to select from dynamic languages.
-- **Difficulty**: Low (Standard CRUD).
-- **Value**: High (Flexibility).
-- **Price Impact**: +$200 value.
 
 
-### 5.multi currency support 
-- **Description**: Allow admins to create/edit currencies via dashboard.
-- **Implementation**: Build UI for `Currency` model CRUD operations. Update `Product` form to select from dynamic currencies.
-- **Difficulty**: Low (Standard CRUD).
-- **Value**: High (Flexibility).
-- **Price Impact**: +$200 value.
-
-### 6.preformace optimization 
-- **lazy loading**
-- **Rate Limiting**: Use **Upstash Ratelimit** on your AI routes (`/api/search`, `/api/assistant`) to prevent abuse and control costs.
-- **Image Optimization**: Ensure all user-uploaded images (UploadThing) are automatically resized and compressed. Large images are the #1 cause of slow sites.
 
 
-### 7. add more flixibility to admin dashboard.
-- **make the main showing info be selected by user , and changed easily**
-- **multiple update at once**: user select every product he want the change to applied on and can change them all at once easily. show confirmation massage.
 
 
-### 8. costumer contact page 
-- **Description**: allow users to contact admin if an error occured
-- **Implementation**: Build UI for `Contact` model CRUD operations.
-- **Difficulty**: Low (Standard CRUD).
-- **Value**: High (Flexibility).
-- **Price Impact**: +$200 value.
+
+
 
 ### Business Suggestions
 1.  **Email Marketing**: Integrate **Resend** or **SendGrid** to send abandoned cart emails and order confirmations. This is the highest ROI activity you can add.
@@ -121,6 +99,23 @@ This section outlines the path to a fully featured, high-value e-commerce platfo
 ### Development Suggestions
 1.  **Testing**: Implement **Playwright** for End-to-End (E2E) testing. Critical for payments and checkout flows to ensure they never break.
 2.  **Accessibility**: Audit the site with **Lighthouse**. Ensure all buttons have `aria-labels` and colors have sufficient contrast.
+
+
+### Section 5: Good Ideas for Future
+
+### 1. Multi Language Support
+- **Description**: Allow admins to create/edit languages via dashboard.
+- **Implementation**: Build UI for `Language` model CRUD operations. Update `Product` form to select from dynamic languages.
+- **Difficulty**: Low (Standard CRUD).
+- **Value**: High (Flexibility).
+- **Price Impact**: +$200 value.
+
+### 2. Multi Currency Support
+- **Description**: Allow admins to create/edit currencies via dashboard.
+- **Implementation**: Build UI for `Currency` model CRUD operations. Update `Product` form to select from dynamic currencies.
+- **Difficulty**: Low (Standard CRUD).
+- **Value**: High (Flexibility).
+- **Price Impact**: +$200 value.
 
 
 ### Section 4: Current Issues

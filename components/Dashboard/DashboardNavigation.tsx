@@ -29,9 +29,17 @@ const links = [
     name: "Email",
     href: "/store/dashboard/email",
   },
+  {
+    name: "Contact",
+    href: "/store/dashboard/contact",
+  },
 ];
 
-export function DashboardNavigation() {
+interface DashboardNavigationProps {
+  pendingContactCount?: number;
+}
+
+export function DashboardNavigation({ pendingContactCount = 0 }: DashboardNavigationProps) {
   const pathname = usePathname();
   return (
     <>
@@ -42,10 +50,16 @@ export function DashboardNavigation() {
           className={cn(
             link.href === pathname
               ? "text-foreground"
-              : "text-muted-foreground hover:text-foreground"
+              : "text-muted-foreground hover:text-foreground",
+            "flex items-center gap-2"
           )}
         >
           {link.name}
+          {link.name === "Contact" && pendingContactCount > 0 && (
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
+              {pendingContactCount}
+            </span>
+          )}
         </Link>
       ))}
     </>

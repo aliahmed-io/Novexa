@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { unstable_noStore as noStore } from "next/cache";
 import { DashboardNavigation } from "@/components/Dashboard/DashboardNavigation";
 import { UserDropdown } from "@/components/storefront/UserDropdown";
+import prisma from "@/lib/db";
 
 export default async function DashboardLayout({
   children,
@@ -20,11 +21,18 @@ export default async function DashboardLayout({
   if (!user || user.email !== "alihassan182006@gmail.com") {
     return redirect("/store/shop");
   }
+
+  const pendingContactCount = await prisma.contact.count({
+    where: {
+      isRead: false,
+    },
+  });
+
   return (
     <div className="flex w-full flex-col max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <header className="sticky top-0 z-50 flex h-16 items-center justify-between gap-4 border-b bg-background">
         <nav className="hidden font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-          <DashboardNavigation />
+          <DashboardNavigation pendingContactCount={pendingContactCount} />
         </nav>
 
         <Sheet>
@@ -39,7 +47,7 @@ export default async function DashboardLayout({
           </SheetTrigger>
           <SheetContent side="left">
             <nav className="flex flex-col gap-6 text-lg font-medium mt-5">
-              <DashboardNavigation />
+              <DashboardNavigation pendingContactCount={pendingContactCount} />
             </nav>
           </SheetContent>
         </Sheet>

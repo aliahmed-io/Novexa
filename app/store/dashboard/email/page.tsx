@@ -1,6 +1,25 @@
 import { EmailComposer } from "@/components/Dashboard/EmailComposer";
+import prisma from "@/lib/db";
+import { unstable_noStore as noStore } from "next/cache";
 
-export default function EmailPage() {
+async function getUsers() {
+    const users = await prisma.user.findMany({
+        select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
+    return users;
+}
+
+export default async function EmailPage() {
+    noStore();
+    const users = await getUsers();
     return (
         <div className="max-w-4xl mx-auto py-8">
             <div className="mb-8">
@@ -10,7 +29,7 @@ export default function EmailPage() {
                 </p>
             </div>
 
-            <EmailComposer />
+            <EmailComposer users={users} />
         </div>
     );
 }

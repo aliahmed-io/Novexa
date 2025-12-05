@@ -1,14 +1,20 @@
 import prisma from "@/lib/db";
-
 import Image from "next/image";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../ui/carousel";
+import { unstable_cache } from "next/cache";
 
 async function getData() {
-  const data = await prisma.banner.findMany({
-    orderBy: {
-      createdAt: "desc",
+  const data = await unstable_cache(
+    async () => {
+      return await prisma.banner.findMany({
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
     },
-  });
+    ["banners"],
+    { revalidate: 3600 }
+  )();
 
   return data;
 }
@@ -19,13 +25,14 @@ export async function Hero() {
   return (
     <Carousel>
       <CarouselContent>
-        {data.map((item) => (
+        {data.map((item, index) => (
           <CarouselItem key={item.id}>
             <div className="relative h-[60vh] lg:h-[80vh]">
               <Image
                 alt="Banner Image"
                 src={item.imageString}
                 fill
+                priority={index === 0}
                 className="object-cover w-full h-full rounded-xl"
               />
               <div className="absolute top-6 left-6 bg-opacity-75 bg-black text-white p-6 rounded-xl shadow-lg transition-transform hover:scale-105">

@@ -14,18 +14,25 @@ import { ExportButton } from "@/components/Dashboard/ExportButton";
 import { BulkEditTable } from "@/components/Dashboard/BulkEditTable";
 
 async function getData() {
-  const data = await prisma.product.findMany({
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  const [data, categories] = await Promise.all([
+    prisma.product.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+    prisma.category.findMany({
+      orderBy: {
+        name: "asc",
+      },
+    }),
+  ]);
 
-  return data;
+  return { data, categories };
 }
 
 export default async function ProductsRoute() {
   noStore();
-  const data = await getData();
+  const { data, categories } = await getData();
   return (
     <>
       <div className="flex items-center justify-end gap-2">
@@ -51,7 +58,7 @@ export default async function ProductsRoute() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <BulkEditTable data={data} />
+          <BulkEditTable data={data} categories={categories} />
         </CardContent>
       </Card>
     </>
