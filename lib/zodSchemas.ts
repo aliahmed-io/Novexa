@@ -27,3 +27,14 @@ export const bannerSchema = z.object({
   title: z.string(),
   imageString: z.string(),
 });
+
+export const addressSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  street1: z.string().min(1, "Street address is required"),
+  street2: z.string().optional(),
+  city: z.string().min(1, "City is required"),
+  state: z.string().min(1, "State is required"),
+  postalCode: z.string().min(1, "Postal code is required"),
+  country: z.string().min(1, "Country is required"), // You might want to use specific country codes
+  phone: z.string().optional(),
+});

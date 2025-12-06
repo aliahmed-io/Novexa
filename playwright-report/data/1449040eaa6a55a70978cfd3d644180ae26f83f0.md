@@ -1,0 +1,142 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link "Site Logo":
+        - /url: /store/shop
+        - img "Site Logo"
+      - generic [ref=e5]:
+        - link "Home" [ref=e6] [cursor=pointer]:
+          - /url: /store/shop
+        - link "All Products" [ref=e7] [cursor=pointer]:
+          - /url: /store/products/all
+        - link "Men" [ref=e8] [cursor=pointer]:
+          - /url: /store/products/men
+        - link "Women" [ref=e9] [cursor=pointer]:
+          - /url: /store/products/women
+        - link "Kids" [ref=e10] [cursor=pointer]:
+          - /url: /store/products/kids
+    - generic [ref=e11]:
+      - button "Search" [ref=e12]:
+        - generic [ref=e13]: Search
+        - img [ref=e14]
+      - generic [ref=e17]:
+        - link "Sign in" [ref=e18] [cursor=pointer]:
+          - /url: /store/api/auth/login?post_login_redirect_url=http%3A%2F%2Flocalhost%3A3000%2Fstore%2Fshop
+        - link "Create Account" [ref=e20] [cursor=pointer]:
+          - /url: /store/api/auth/register?post_login_redirect_url=%2Fstore%2Fshop
+  - main [ref=e21]:
+    - generic [ref=e22]:
+      - region [ref=e23]:
+        - group [ref=e26]:
+          - generic [ref=e27]:
+            - img "Banner Image" [ref=e28]
+            - heading "new collection" [level=1] [ref=e30]
+        - button "Previous slide" [disabled]:
+          - img
+          - generic: Previous slide
+        - button "Next slide" [disabled]:
+          - img
+          - generic: Next slide
+      - generic [ref=e31]:
+        - generic [ref=e32]:
+          - heading "Shop by Category" [level=2] [ref=e33]
+          - link "Browse all Products →" [ref=e34] [cursor=pointer]:
+            - /url: /store/products/all
+        - generic [ref=e35]:
+          - generic [ref=e36]:
+            - img "All Products Image" [ref=e37]
+            - link "All Products Shop Now" [ref=e40] [cursor=pointer]:
+              - /url: /store/products/all
+              - heading "All Products" [level=3] [ref=e41]
+              - paragraph [ref=e42]: Shop Now
+          - generic [ref=e43]:
+            - img "Products for men Image" [ref=e44]
+            - link "Products for Men Shop Now" [ref=e47] [cursor=pointer]:
+              - /url: /store/products/men
+              - heading "Products for Men" [level=3] [ref=e48]
+              - paragraph [ref=e49]: Shop Now
+          - generic [ref=e50]:
+            - img "Women product image" [ref=e51]
+            - link "Products for Women Shop Now" [ref=e54] [cursor=pointer]:
+              - /url: /store/products/women
+              - heading "Products for Women" [level=3] [ref=e55]
+              - paragraph [ref=e56]: Shop Now
+      - heading "Featured Items" [level=2] [ref=e57]
+      - generic [ref=e58]:
+        - generic [ref=e59]:
+          - region [ref=e60]:
+            - group [ref=e63]:
+              - img "Product Image" [ref=e65]
+            - button "Previous slide" [disabled]:
+              - img
+              - generic: Previous slide
+            - button "Next slide" [disabled]:
+              - img
+              - generic: Next slide
+          - generic [ref=e66]:
+            - heading "Air Max 270" [level=1] [ref=e67]
+            - heading "$149" [level=3] [ref=e69]
+          - paragraph [ref=e70]: "Lifestyle shoe with large Air unit; multiple official product-angle photos on Nike product page. - Brand: Nike"
+          - link "Learn More!" [ref=e72] [cursor=pointer]:
+            - /url: /store/product/35b40aad-a145-4ee6-af36-a7b180ec2c7e
+        - generic [ref=e73]:
+          - region [ref=e74]:
+            - generic [ref=e76]:
+              - group [ref=e77]:
+                - img "Product Image" [ref=e79]
+              - group [ref=e80]:
+                - img "Product Image" [ref=e82]
+            - button "Previous slide" [disabled]:
+              - img
+              - generic: Previous slide
+            - button "Next slide" [disabled]:
+              - img
+              - generic: Next slide
+          - generic [ref=e83]:
+            - heading "Velocity Pro Runner" [level=1] [ref=e84]
+            - heading "$180" [level=3] [ref=e86]
+          - paragraph [ref=e87]: Engineered for maximum energy return, this marathon-ready shoe features a breathable knit upper and responsive cushioning for long-distance runs.
+          - link "Learn More!" [ref=e89] [cursor=pointer]:
+            - /url: /store/product/54f2ef1a-2fb5-4a44-869a-2bc7b9fc083d
+        - generic [ref=e90]:
+          - region [ref=e91]:
+            - generic [ref=e93]:
+              - group [ref=e94]:
+                - img "Product Image" [ref=e96]
+              - group [ref=e97]:
+                - img "Product Image" [ref=e99]
+            - button "Previous slide" [disabled]:
+              - img
+              - generic: Previous slide
+            - button "Next slide" [disabled]:
+              - img
+              - generic: Next slide
+          - generic [ref=e100]:
+            - heading "Urban Minimalist Leather" [level=1] [ref=e101]
+            - heading "$120" [level=3] [ref=e103]
+          - paragraph [ref=e104]: A sleek white leather sneaker designed for the modern professional. Pairs perfectly with both jeans and casual suits.
+          - link "Learn More!" [ref=e106] [cursor=pointer]:
+            - /url: /store/product/44effca8-6e77-4767-9b48-81a2204e42bd
+      - link "Browse All Products" [ref=e108] [cursor=pointer]:
+        - /url: /store/products/all
+  - contentinfo [ref=e109]:
+    - paragraph [ref=e111]: © 2024 Novexa. All Rights Reserved.
+  - generic:
+    - button "Open Novexa shoe expert chat"
+  - region "Notifications alt+T"
+  - generic [ref=e116] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e117]:
+      - img [ref=e118]
+    - generic [ref=e121]:
+      - button "Open issues overlay" [ref=e122]:
+        - generic [ref=e123]:
+          - generic [ref=e124]: "0"
+          - generic [ref=e125]: "1"
+        - generic [ref=e126]: Issue
+      - button "Collapse issues badge" [ref=e127]:
+        - img [ref=e128]
+  - alert [ref=e130]
+```

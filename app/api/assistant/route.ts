@@ -115,7 +115,6 @@ export async function POST(req: NextRequest) {
         name: true,
         price: true,
         description: true,
-        category: true,
         images: true,
         color: true,
         style: true,
@@ -124,7 +123,7 @@ export async function POST(req: NextRequest) {
         tags: true,
         features: true,
         mainCategory: true, // Fetch mainCategory
-        Category: { // Fetch related Category
+        category: { // Fetch related Category
           select: {
             name: true
           }
@@ -205,13 +204,10 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("Assistant Error:", error);
-    return NextResponse.json(
-      {
-        role: "assistant",
-        content: "I’m having trouble reaching the Novexa assistant right now.",
-        error: error.message,
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      role: "assistant",
+      content: "I'm having trouble connecting to the brain. Please try again later.",
+      error: error.message
+    });
   }
 }

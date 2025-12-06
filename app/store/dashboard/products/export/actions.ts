@@ -29,6 +29,7 @@ export async function exportProducts() {
             price: product.price,
             images: product.images.join("|"),
             category: product.category.name,
+            mainCategory: product.mainCategory,
             isFeatured: product.isFeatured,
             color: product.color,
             style: product.style,

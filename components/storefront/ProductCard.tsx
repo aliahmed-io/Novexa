@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { WishlistButton } from "./WishlistButton";
 import {
   Carousel,
   CarouselContent,
@@ -41,6 +42,9 @@ export function ProductCard({ item }: iAppProps) {
                     -{item.discountPercentage}%
                   </div>
                 )}
+                <div className="absolute top-2 left-2 z-10">
+                  <WishlistButton productId={item.id} />
+                </div>
               </div>
             </CarouselItem>
           ))}

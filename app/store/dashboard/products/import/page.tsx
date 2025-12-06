@@ -56,7 +56,7 @@ export default function ImportProductsPage() {
     };
 
     const handleDownloadTemplate = () => {
-        const headers = "name,description,status,price,images,category,isFeatured,color,style,height,pattern,tags,features,modelUrl,discountPercentage";
+        const headers = "name,description,status,price,images,category,mainCategory,isFeatured,color,style,height,pattern,tags,features,modelUrl,discountPercentage";
         const blob = new Blob([headers], { type: "text/csv" });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");

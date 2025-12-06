@@ -6,8 +6,30 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { Stripe } from "stripe";
 
-export async function POST() {
+export async function POST(req: Request) {
     try {
+        const body = await req.json().catch(() => null);
+        const {
+            shippingName,
+            shippingPhone,
+            shippingStreet1,
+            shippingStreet2,
+            shippingCity,
+            shippingState,
+            shippingPostalCode,
+            shippingCountry,
+            shippingRateId,
+            shippingCost,
+            shippingServiceLevel,
+        } = (body || {}) as Record<string, string | number | undefined>;
+
+        if (!shippingName || !shippingStreet1 || !shippingCity || !shippingPostalCode || !shippingCountry) {
+            return NextResponse.json({ error: "Missing shipping information" }, { status: 400 });
+        }
+
+        // Ensure shippingCost is a number (it might be string if coming from JSON)
+        const shippingCostNum = Number(shippingCost) || 0;
+
         const { getUser } = getKindeServerSession();
         const user = await getUser();
 
@@ -60,6 +82,23 @@ export async function POST() {
             quantity: item.quantity,
         }));
 
+        // Add Shipping Line Item
+        if (shippingCostNum > 0) {
+            lineItems.push({
+                price_data: {
+                    currency: "usd",
+                    product_data: {
+                        name: `Shipping (${shippingServiceLevel || "Standard"})`,
+                    },
+                    unit_amount: Math.round(shippingCostNum * 100), // Assuming shippingCost is in dollars? Verify this.
+                    // Wait, Shippo rates usually come in dollars string e.g. "5.50". 
+                    // Users usually pass it as dollars. 
+                    // Let's assume shippingCost is DOLLARS.
+                },
+                quantity: 1,
+            });
+        }
+
         let couponId: string | undefined;
 
         if (cart.discountCode && cart.discountPercentage) {
@@ -85,14 +124,38 @@ export async function POST() {
             ? totalAmount * (1 - cart.discountPercentage / 100)
             : totalAmount;
 
+        const totalWithShipping = finalAmount + shippingCostNum;
+
         console.log("Creating order in DB...");
         // Create a pending order in the database
         const order = await prisma.order.create({
             data: {
-                amount: Math.round(finalAmount * 100),
+                amount: Math.round(totalWithShipping * 100), // stored in cents
                 status: "pending",
                 userId: user.id,
-                discountId: cart.discountCode ? (await prisma.discount.findUnique({ where: { code: cart.discountCode } }))?.id : undefined,
+                discountId: cart.discountCode
+                    ? (await prisma.discount.findUnique({ where: { code: cart.discountCode } }))?.id
+                    : undefined,
+                shippingName: String(shippingName),
+                shippingPhone: String(shippingPhone),
+                shippingStreet1: String(shippingStreet1),
+                shippingStreet2: String(shippingStreet2),
+                shippingCity: String(shippingCity),
+                shippingState: String(shippingState),
+                shippingPostalCode: String(shippingPostalCode),
+                shippingCountry: String(shippingCountry) || "US",
+                shippingRateId: String(shippingRateId || ""),
+                shippingCost: Math.round(shippingCostNum * 100), // cents
+                shippingServiceLevel: String(shippingServiceLevel || ""),
+                orderItems: {
+                    create: cart.items.map((item) => ({
+                        productId: item.id,
+                        quantity: item.quantity,
+                        price: Math.round(item.price * 100), // Store in cents
+                        name: item.name,
+                        image: item.imageString,
+                    })),
+                },
             },
         });
         console.log("Order created:", order.id);

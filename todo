@@ -1,0 +1,499 @@
+# Novexa – Implementation TODO (From Prototype to Sellable Store)
+
+This file is the **master implementation plan** to:
+
+- Answer all evaluation questions and fix all identified problems.
+- Implement missing features.
+- Make the site realistically **sellable as a ready-to-launch store**.
+
+For each area:
+- **Problem** – what’s wrong / missing.
+- **Solution** – what “done” looks like.
+- **How to implement** – concrete steps.
+- **Impacted code** – existing files to touch + new files to create.
+
+---
+
+## 0. Groundwork & Environment
+
+### 0.1 Prisma schema & database state
+
+- **Problem**
+  - Schema has evolved, migrations were messy, and you had errors with `prisma migrate dev`.
+  - Risk: schema in code and schema in Neon drift apart.
+
+- **Solution**
+  - Use `prisma db push` as the **source of truth** until you’re ready to regenerate migrations cleanly.
+
+- **How to implement**
+  1. Make sure `prisma/schema.prisma` reflects all desired models (including order shipping fields, TryOnSession, Meshy fields, etc.).
+  2. Run `npx prisma db push` against Neon to sync schema.
+  3. Run `npx prisma generate` to ensure client is up-to-date.
+  4. Manually verify a few critical tables (User, Product, Order, Shipment) in Neon.
+
+- **Impacted code**
+  - `prisma/schema.prisma`
+  - Any file that imports `@prisma/client` (compile-time impact only).
+
+---
+
+## 3. Admin & Operations
+
+### 3.1 Newsletter subscribers & broadcast cleanup
+
+- **Problem**
+  - Broadcast emails treat all users as subscribers; there is no explicit subscription model or unsubscribe.
+
+- **Solution**
+  - Introduce a **NewsletterSubscriber** model and subscription preferences.
+
+- **How to implement**
+  1. **Data model** – ✅ already done
+     - `NewsletterSubscriber` model exists and is linked to `User` via `User.newsletterSubscription`.
+  2. **Subscription flows**
+     - Newsletter signup form on landing and footer.
+     - Checkbox during checkout: “Subscribe to updates”.
+     - Unsubscribe link in all marketing emails (updates `status`).
+  3. **Broadcast targeting**
+     - Update broadcast query to pull from `NewsletterSubscriber` where `status = subscribed`.
+
+- **Impacted code**
+  - Existing:
+    - Admin broadcast email page and actions under `app/store/dashboard`.
+  - New:
+    - API / actions for subscribe/unsubscribe.
+
+### 3.2 Audit log for critical actions
+
+- **Problem**
+  - No audit trail for who changed prices, created discounts, sent campaigns.
+
+- **Solution**
+  - Add minimal **AuditLog** model and a helper to log critical actions.
+
+- **How to implement**
+  1. **Data model** – ✅ already done
+     - `AuditLog` model exists and is linked to `User` via `User.auditLogs`.
+  2. **Helper**
+     - `lib/audit.ts` with `logAudit(userId, action, targetType, targetId, metadata)`.
+  3. **Wire into admin actions**
+     - Log on: product create/update/delete, discount changes, broadcast email send, manual order/shipment status changes.
+
+- **Impacted code**
+  - Existing:
+    - Admin server actions for products, discounts, orders, broadcast.
+  - New:
+    - `lib/audit.ts` helper.
+    - Admin Audit log page `app/store/dashboard/audit/page.tsx` (optional UI).
+
+### 3.3 Integration health dashboard
+
+- **Problem**
+  - No quick way for a buyer to know if Stripe/Shippo/Resend/Gemini/Redis are correctly configured.
+
+- **Solution**
+  - Add an **Integration Health** widget/page in the admin dashboard.
+
+- **How to implement**
+  1. **Health checks**
+     - For each service, implement a lightweight check (e.g. list products/test call or config validation).
+     - Surface as “OK / Misconfigured (missing env) / Error (API failing)”.
+  2. **UI**
+     - On dashboard home, show card with integration statuses.
+
+- **Impacted code**
+  - Existing:
+    - `app/store/dashboard/page.tsx` (main admin dashboard) – add widget.
+  - New:
+    - `lib/integrations/health.ts` – functions to check each integration.
+
+---
+
+## 4. Reliability, Tests & Monitoring
+
+### 4.1 Error tracking (Sentry or similar)
+
+- **Problem**
+  - No centralized error tracking; production errors will be invisible.
+
+- **Solution**
+  - Add Sentry (or similar) to capture server and client errors.
+
+- **How to implement**
+  1. Follow Sentry Next.js setup docs (SDK init, DSN env var).
+  2. Wrap API routes and key server actions with error capture as needed.
+
+- **Impacted code**
+  - New:
+    - `sentry.client.config.ts` / `sentry.server.config.ts` (per Sentry docs).
+  - Existing:
+    - Possibly small wrappers around key API routes for extra context.
+
+### 4.2 E2E tests with Playwright
+
+- **Problem**
+  - No automated tests; checkout, shipping, and admin flows are unprotected.
+
+- **Solution**
+  - Add a **minimal but meaningful** suite of Playwright tests.
+
+- **How to implement**
+  1. Install Playwright and set up config.
+  2. Write tests for:
+     - Customer: login → browse → add to cart → checkout → Stripe test payment → order history.
+     - Admin: login → view orders → buy shipping label.
+     - Smoke test for AI assistant endpoint (if key present).
+
+- **Impacted code**
+  - New:
+    - `playwright.config.ts`
+    - `tests/e2e/*` files.
+
+### 4.3 Unit tests for business logic
+
+- **Problem**
+  - Discount logic, cart calculations, and product filters are untested.
+
+- **Solution**
+  - Add Jest/Vitest unit tests around key pure functions.
+
+- **How to implement**
+  1. Install Jest/Vitest.
+  2. Identify pure helpers (e.g. formatters, discount calculators, filter functions).
+  3. Write tests for edge cases (no discount, multiple discounts, invalid codes, etc.).
+
+- **Impacted code**
+  - Existing helpers under `lib/*`.
+  - New `__tests__/*` or `tests/unit/*`.
+
+### 4.4 Healthcheck endpoint & basic logging
+
+- **Problem**
+  - No `/api/health` endpoint; limited logging.
+
+- **Solution**
+  - Add simple health endpoint and structured logging for critical operations.
+
+- **How to implement**
+  1. Create `/api/health` that checks DB and returns `ok`.
+  2. Add structured logs (JSON) for checkout, webhooks, and Shippo integration.
+
+- **Impacted code**
+  - New:
+    - `app/api/health/route.ts`.
+  - Existing:
+    - `app/api/checkout/route.ts`, webhook routes.
+
+---
+
+## 5. Security & Abuse Prevention
+
+### 5.1 Rate limiting for critical endpoints
+
+- **Problem**
+  - `/api/assistant`, `/api/search`, `/api/checkout`, and contact/broadcast can be abused.
+
+- **Solution**
+  - Apply **rate limiting** per IP and/or per user for these endpoints.
+
+- **How to implement**
+  1. Implement a small rate-limiter using Upstash Redis or another store.
+  2. Wrap critical routes with a helper that enforces limits.
+
+- **Impacted code**
+  - Existing:
+    - `app/api/assistant/route.ts`
+    - `app/api/search/route.ts`
+    - `app/api/checkout/route.ts`
+    - Contact form API and broadcast actions.
+  - New:
+    - `lib/rate-limit.ts` – shared helper.
+
+### 5.2 Input validation & safer error messages
+
+- **Problem**
+  - Inputs are sometimes assumed valid; errors can leak implementation detail.
+
+- **Solution**
+  - Use a validation library (e.g. Zod) for all external inputs and map internal errors to friendly messages.
+
+- **How to implement**
+  1. Define Zod schemas for request payloads.
+  2. Validate at the boundary (API route / server action).
+  3. Catch and map errors to generic user-facing responses.
+
+- **Impacted code**
+  - All API routes and server actions that accept arbitrary input.
+
+---
+
+## 6. Legal & Compliance
+
+### 6.1 Legal/policy pages
+
+- **Problem**
+  - No Terms of Service, Privacy Policy, Returns & Refunds, or Shipping policy.
+
+- **Solution**
+  - Add static pages for each policy and link them in the footer.
+
+- **How to implement**
+  1. Create static routes:
+     - `/legal/terms`
+     - `/legal/privacy`
+     - `/legal/shipping`
+     - `/legal/returns`
+  2. Use simple but professional copy (can be generated then reviewed).
+  3. Update footer to link to these pages.
+
+- **Impacted code**
+  - Existing:
+    - `components/storefront/Footer.tsx` – add links.
+  - New:
+    - `app/legal/terms/page.tsx`, `privacy/page.tsx`, `shipping/page.tsx`, `returns/page.tsx`.
+
+### 6.2 Cookie / tracking consent (future when analytics added)
+
+- **Problem**
+  - If analytics/tracking are added, you need consent banner.
+
+- **Solution**
+  - Implement a basic cookie consent banner with persistent preference.
+
+- **Impacted code**
+  - New banner component and small storage (cookie/localStorage) logic.
+
+---
+
+## 7. SEO & Marketing Polish
+
+### 7.1 Metadata & OpenGraph
+
+- **Problem**
+  - Landing page has metadata, but product and key pages may lack rich, dynamic metadata.
+
+- **Solution**
+  - Ensure all major routes define `Metadata` with titles, descriptions, and OpenGraph/Twitter cards.
+
+- **How to implement**
+  1. Add `generateMetadata` to product pages to use product name, description, price, and main image.
+  2. Define metadata for shop, categories, cart, and checkout.
+
+- **Impacted code**
+  - Existing:
+    - `app/(landing page)/layout.tsx` – already has metadata.
+    - `app/store/(storefront)/product/[id]/page.tsx` – add `generateMetadata`.
+    - Other main pages under `app/store/(storefront)`.
+
+### 7.2 Structured data (schema.org)
+
+- **Problem**
+  - No structured product data for search engines.
+
+- **Solution**
+  - Add JSON-LD `<script>` tag for Product schema on product pages.
+
+- **How to implement**
+  1. Generate JSON-LD object from product data.
+  2. Inject via `<script type="application/ld+json">`.
+
+- **Impacted code**
+  - `app/store/(storefront)/product/[id]/page.tsx`.
+
+---
+
+## 8. Existing AI Features – Stabilize & Polish
+
+### 8.1 AI assistant & AI search robustness
+
+- **Problem**
+  - Assistant/search require Gemini; failures and latency are not handled gracefully; no logging or limits.
+
+- **Solution**
+  - Add:
+    - Proper error fallback messaging.
+    - Usage logging.
+    - Rate limiting (see Security).
+
+- **How to implement**
+  1. Wrap calls to Gemini in `try/catch` and return friendly error states.
+  2. Log prompts, response times, and errors in a simple `AIInteractionLog` model (optional).
+
+- **Impacted code**
+  - Existing:
+    - `app/api/assistant/route.ts`
+    - `app/api/search/route.ts` and `filterProducts` helper.
+  - New:
+    - Optional `AIInteractionLog` model.
+
+### 8.2 3D model generation (Meshy) UX
+
+- **Problem**
+  - Meshy-related fields exist, but there’s no full UX for progress tracking.
+
+- **Solution**
+  - Add a per-product 3D generation panel with status and progress.
+
+- **How to implement**
+  1. Implement async background polling or webhooks from Meshy to update `meshyStatus`, `meshyProgress`, `modelUrl`.
+  2. Show status badges in product admin table and detail view.
+
+- **Impacted code**
+  - Existing:
+    - Product admin pages and actions.
+  - New:
+    - Meshy webhook or polling job handler.
+
+### 8.3 TryOnSession MVP
+
+- **Problem**
+  - `TryOnSession` exists in schema but no UI.
+
+- **Solution**
+  - MVP virtual try-on feature: user uploads photo + selects shoe; result images saved and displayed in a gallery.
+
+- **How to implement**
+  1. Add `/store/try-on` page:
+     - Upload form (use existing UploadThing setup).
+     - Shoe selection dropdown.
+  2. Call external VTON API (Replicate/other) and store resulting image URL and metadata in `TryOnSession`.
+  3. Show gallery of past TryOnSessions for logged-in user.
+
+- **Impacted code**
+  - Existing:
+    - `prisma/schema.prisma` – `TryOnSession`.
+  - New:
+    - `app/store/(storefront)/try-on/page.tsx` and supporting components.
+
+---
+
+## 9. New AI-Native Flagship Features
+
+### 9.1 AI Chief Operating Officer (COO) Mode
+
+- **Problem**
+  - Admin has powerful tools but no **guidance**; buyer wants AI that turns data into actions.
+
+- **Solution**
+  - AI COO dashboard card/page that:
+    - Summarizes recent performance.
+    - Suggests concrete actions (create discounts, launch campaigns, restock, etc.).
+    - Optionally can **execute** some suggestions via server actions.
+
+- **How to implement**
+  1. **Data aggregation helper**
+     - Write a server function that aggregates metrics: revenue, top products, cart abandonment, email performance.
+  2. **Prompting**
+     - Create a prompt template describing the business and supported actions.
+     - Send metrics + prompt to Gemini.
+  3. **Actions**
+     - Map a subset of suggested actions to server actions (e.g. create discount, schedule email campaign) and let admin click “Apply this suggestion”.
+  4. **UI**
+     - New dashboard tab or card: “AI COO Mode”.
+
+- **Impacted code**
+  - Existing:
+    - Admin dashboard pages and analytics helpers.
+  - New:
+    - `app/store/dashboard/ai-coo/page.tsx` or dedicated component.
+    - `lib/ai/coo.ts` – prompt construction and Gemini call.
+
+### 9.2 Auto-generated campaigns
+
+- **Problem**
+  - Broadcast email system exists but content creation is manual.
+
+- **Solution**
+  - AI-assisted campaign builder that drafts subject lines, body, and segmentation suggestions.
+
+- **How to implement**
+  1. Add “Generate with AI” button in campaign creation form.
+  2. Send product and order context + rough theme (e.g. “summer sale”) to Gemini.
+  3. Pre-fill subject and body fields; allow manual editing before send.
+
+- **Impacted code**
+  - Existing:
+    - Admin broadcast email page.
+  - New:
+    - `lib/ai/campaigns.ts`.
+
+### 9.3 AI flagging system (fraud & anomalies)
+
+- **Problem**
+  - No system to detect suspicious orders, reviews, or traffic patterns.
+
+- **Solution**
+  - Background job or scheduled task that scores activity and surfaces alerts in the dashboard.
+
+- **How to implement**
+  1. Define **Alert** model (type, severity, message, linked entity).
+  2. Periodically scan orders and reviews for red flags (basic heuristics + optional AI).
+  3. Display alerts in admin dashboard.
+
+- **Impacted code**
+  - New:
+    - `Alert` model in Prisma.
+    - `lib/ai/alerts.ts` or heuristic scanner.
+    - Admin Alerts page or dashboard section.
+
+---
+
+## 10. Documentation & Handover (Sellability)
+
+### 10.1 Technical README – ✅ v1 written
+
+- **Problem**
+  - README was previously minimal; buyer wouldn’t know how to set everything up.
+
+- **Solution**
+  - You now have a solid v1 README with:
+    - Project overview and feature list.
+    - Tech stack.
+    - Basic Getting Started steps and deployment notes.
+  - **Remaining polish (optional):**
+    - Add per-service setup details (Stripe, Kinde, Resend, Shippo, Redis, Neon, Gemini, UploadThing).
+    - Link to the env var cheat sheet from section 10.3.
+
+- **Impacted code**
+  - `README.md` – further expand with integration-specific setup and env var references if desired.
+
+### 10.2 Non-technical operations guide
+
+- **Problem**
+  - Non-dev store owner won’t know how to operate the store (creating products, handling orders, returns, campaigns).
+
+- **Solution**
+  - A separate `OPERATIONS.md` or `docs/operations.md` explaining day-to-day tasks with screenshots/GIFs (optional).
+
+- **Impacted code**
+  - New docs file(s) under `docs/` or project root.
+
+### 10.3 Env var & deployment cheat sheet
+
+- **Problem**
+  - Env vars are spread between `.env` and code; not obvious which are mandatory.
+
+- **Solution**
+  - Central `.env.example` and a section in README listing each required variable and its purpose.
+
+- **Impacted code**
+  - `.env.example` – add all required vars.
+  - `README.md` – reference and explain.
+
+---
+
+## 11. Execution Order (High-Level)
+
+1. Stabilize schema & DB (`prisma db push`).
+2. Finish shipping & checkout (address, shipping options, Shippo webhooks, order detail + tracking).
+3. Add legal pages & footer links.
+4. Implement basic monitoring (Sentry) + minimal `/api/health`.
+5. Add 2–3 key Playwright E2E tests around checkout/webhooks.
+6. Tighten email/newsletter with subscriber model + unsubscribe.
+7. Add SEO metadata + product structured data.
+8. Implement user account + wishlists (if time).
+9. Add AI COO Mode as the first flagship AI feature.
+10. Polish existing AI features (assistant/search, Meshy UX, TryOnSession MVP).
+11. Write docs (technical README, operations guide, env cheat sheet).
+
+Following this list will move the project from **7.5/10 codebase, 6/10 product** to something you can honestly sell as a **ready-to-launch AI-powered e‑commerce store**.

@@ -589,3 +589,25 @@ export async function delete3DModel(productId: string) {
   revalidatePath(`/store/dashboard/products/${productId}`);
   revalidatePath(`/store/product/${productId}`);
 }
+
+export async function checkMeshyStatus(productId: string) {
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  if (!user) return null;
+
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    select: {
+      meshyStatus: true,
+      meshyProgress: true,
+      modelUrl: true,
+    },
+  });
+
+  return {
+    status: product?.meshyStatus,
+    progress: product?.meshyProgress,
+    modelUrl: product?.modelUrl,
+  };
+}

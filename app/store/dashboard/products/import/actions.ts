@@ -3,6 +3,7 @@
 import prisma from "@/lib/db";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { revalidatePath } from "next/cache";
+import { MainCategory } from "@prisma/client";
 
 export async function importProducts(data: any[]) {
     const { getUser } = getKindeServerSession();
@@ -58,6 +59,15 @@ export async function importProducts(data: any[]) {
             const tags = row.tags ? row.tags.split(",").map((s: string) => s.trim()) : [];
             const features = row.features ? row.features.split(",").map((s: string) => s.trim()) : [];
 
+            // Map mainCategory if provided, otherwise default to MEN
+            let mainCategory: MainCategory = MainCategory.MEN;
+            if (row.mainCategory) {
+                const value = String(row.mainCategory).toUpperCase();
+                if (value === "MEN" || value === "WOMEN" || value === "KIDS") {
+                    mainCategory = value as MainCategory;
+                }
+            }
+
             await prisma.product.create({
                 data: {
                     name: row.name,
@@ -75,6 +85,7 @@ export async function importProducts(data: any[]) {
                     features: features,
                     modelUrl: row.modelUrl || null,
                     discountPercentage: Number(row.discountPercentage) || 0,
+                    mainCategory,
                 },
             });
             count++;

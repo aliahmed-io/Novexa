@@ -20,12 +20,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronLeft, XIcon } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { SubmitButton } from "../SubmitButtons";
 import { Switch } from "@/components/ui/switch";
 import Image from "next/image";
 
-import { useActionState, useState, useTransition } from "react";
-import { editProduct, generate3DModel, delete3DModel } from "@/app/store/actions";
+import { useActionState, useState, useTransition, useEffect } from "react";
+import { editProduct, generate3DModel, delete3DModel, checkMeshyStatus } from "@/app/store/actions";
 import { analyzeProductImage } from "@/app/store/dashboard/products/analyze/actions";
 import { Sparkles, Loader2 } from "lucide-react";
 
@@ -301,16 +302,40 @@ function ModelSwitch({
   modelUrl: string | null
 }) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
   const isGenerating = status === "PENDING" || status === "IN_PROGRESS";
+
+  // Polling for status updates
+  useEffect(() => {
+    if (!isGenerating) return;
+
+    const interval = setInterval(() => {
+      // We need a way to refresh the data. 
+      // Since this is a client component inside a server structure, 
+      // calling router.refresh() works but might be heavy.
+      // A lighter weight server action just to get status would be better, 
+      // but for now, let's use router.refresh() or a custom action.
+      // Let's assume we can call a server action locally to check status.
+      checkMeshyStatus(productId).then((res) => {
+        if (res && (res.status !== status || res.progress !== progress)) {
+          router.refresh();
+        }
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isGenerating, productId, status, router]);
 
   const handleToggle = (checked: boolean) => {
     startTransition(async () => {
       if (checked) {
         const res = await generate3DModel(productId, imageUrl);
         if (!res.success) alert("Failed to start generation");
+        else router.refresh();
       } else {
         if (confirm("Are you sure you want to delete this 3D model?")) {
           await delete3DModel(productId);
+          router.refresh();
         }
       }
     });
@@ -320,6 +345,7 @@ function ModelSwitch({
     if (confirm("This will delete the current model and generate a new one. Continue?")) {
       startTransition(async () => {
         await generate3DModel(productId, imageUrl);
+        router.refresh();
       });
     }
   };
@@ -338,8 +364,9 @@ function ModelSwitch({
       </div>
 
       {isGenerating && (
-        <div className="text-xs text-muted-foreground ml-14">
-          Status: {status} {progress ? `(${progress}%)` : ""}
+        <div className="text-xs text-muted-foreground ml-14 flex items-center gap-2">
+          <Loader2 className="w-3 h-3 animate-spin" />
+          <span>Status: {status} {progress ? `(${progress}%)` : ""}</span>
         </div>
       )}
 

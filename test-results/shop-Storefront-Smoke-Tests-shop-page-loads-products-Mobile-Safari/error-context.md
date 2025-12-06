@@ -1,0 +1,126 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - button [ref=e4]:
+        - img
+      - link "Site Logo":
+        - /url: /store/shop
+        - img "Site Logo"
+    - button [ref=e6]:
+      - img [ref=e7]
+  - main [ref=e10]:
+    - generic [ref=e11]:
+      - region [ref=e12]:
+        - group [ref=e15]:
+          - generic [ref=e16]:
+            - img "Banner Image" [ref=e17]
+            - heading "new collection" [level=1] [ref=e19]
+        - button "Previous slide" [disabled]:
+          - img
+          - generic: Previous slide
+        - button "Next slide" [disabled]:
+          - img
+          - generic: Next slide
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - heading "Shop by Category" [level=2] [ref=e22]
+          - link "Browse all Products →" [ref=e23]:
+            - /url: /store/products/all
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - img "All Products Image" [ref=e26]
+            - link "All Products Shop Now" [ref=e29]:
+              - /url: /store/products/all
+              - heading "All Products" [level=3] [ref=e30]
+              - paragraph [ref=e31]: Shop Now
+          - generic [ref=e32]:
+            - img "Products for men Image" [ref=e33]
+            - link "Products for Men Shop Now" [ref=e36]:
+              - /url: /store/products/men
+              - heading "Products for Men" [level=3] [ref=e37]
+              - paragraph [ref=e38]: Shop Now
+          - generic [ref=e39]:
+            - img "Women product image" [ref=e40]
+            - link "Products for Women Shop Now" [ref=e43]:
+              - /url: /store/products/women
+              - heading "Products for Women" [level=3] [ref=e44]
+              - paragraph [ref=e45]: Shop Now
+      - heading "Featured Items" [level=2] [ref=e46]
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - region [ref=e49]:
+            - group [ref=e52]:
+              - img "Product Image" [ref=e54]
+            - button "Previous slide" [disabled]:
+              - img
+              - generic: Previous slide
+            - button "Next slide" [disabled]:
+              - img
+              - generic: Next slide
+          - generic [ref=e55]:
+            - heading "Air Max 270" [level=1] [ref=e56]
+            - heading "$149" [level=3] [ref=e58]
+          - paragraph [ref=e59]: "Lifestyle shoe with large Air unit; multiple official product-angle photos on Nike product page. - Brand: Nike"
+          - link "Learn More!" [ref=e61]:
+            - /url: /store/product/35b40aad-a145-4ee6-af36-a7b180ec2c7e
+        - generic [ref=e62]:
+          - region [ref=e63]:
+            - generic [ref=e65]:
+              - group [ref=e66]:
+                - img "Product Image" [ref=e68]
+              - group [ref=e69]:
+                - img "Product Image" [ref=e71]
+            - button "Previous slide" [disabled]:
+              - img
+              - generic: Previous slide
+            - button "Next slide" [ref=e72]:
+              - img
+              - generic [ref=e73]: Next slide
+          - generic [ref=e74]:
+            - heading "Velocity Pro Runner" [level=1] [ref=e75]
+            - heading "$180" [level=3] [ref=e77]
+          - paragraph [ref=e78]: Engineered for maximum energy return, this marathon-ready shoe features a breathable knit upper and responsive cushioning for long-distance runs.
+          - link "Learn More!" [ref=e80]:
+            - /url: /store/product/54f2ef1a-2fb5-4a44-869a-2bc7b9fc083d
+        - generic [ref=e81]:
+          - region [ref=e82]:
+            - generic [ref=e84]:
+              - group [ref=e85]:
+                - img "Product Image" [ref=e87]
+              - group [ref=e88]:
+                - img "Product Image" [ref=e90]
+            - button "Previous slide" [disabled]:
+              - img
+              - generic: Previous slide
+            - button "Next slide" [ref=e91]:
+              - img
+              - generic [ref=e92]: Next slide
+          - generic [ref=e93]:
+            - heading "Urban Minimalist Leather" [level=1] [ref=e94]
+            - heading "$120" [level=3] [ref=e96]
+          - paragraph [ref=e97]: A sleek white leather sneaker designed for the modern professional. Pairs perfectly with both jeans and casual suits.
+          - link "Learn More!" [ref=e99]:
+            - /url: /store/product/44effca8-6e77-4767-9b48-81a2204e42bd
+      - link "Browse All Products" [ref=e101]:
+        - /url: /store/products/all
+  - contentinfo [ref=e102]:
+    - paragraph [ref=e104]: © 2024 Novexa. All Rights Reserved.
+  - button "Open Novexa shoe expert chat" [ref=e105]:
+    - img [ref=e106]
+  - region "Notifications alt+T"
+  - generic [ref=e112] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e113]:
+      - img [ref=e114]
+    - generic [ref=e119]:
+      - button "Open issues overlay" [ref=e120]:
+        - generic [ref=e121]:
+          - generic [ref=e122]: "0"
+          - generic [ref=e123]: "1"
+        - generic [ref=e124]: Issue
+      - button "Collapse issues badge" [ref=e125]:
+        - img [ref=e126]
+  - alert [ref=e128]
+```

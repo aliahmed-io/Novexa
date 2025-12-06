@@ -33,6 +33,18 @@ const links = [
     name: "Contact",
     href: "/store/dashboard/contact",
   },
+  {
+    name: "Integrations",
+    href: "/store/dashboard/integrations",
+  },
+  {
+    name: "Audit Logs",
+    href: "/store/dashboard/audit",
+  },
+  {
+    name: "Returns",
+    href: "/store/dashboard/returns",
+  },
 ];
 
 interface DashboardNavigationProps {

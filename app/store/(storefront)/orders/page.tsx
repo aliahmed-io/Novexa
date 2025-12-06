@@ -74,12 +74,12 @@ export default async function OrdersPage() {
                                 <div className="flex items-center justify-between">
                                     <Badge
                                         className={`capitalize ${order.status === "pending"
-                                                ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
-                                                : order.status === "shipped"
-                                                    ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
-                                                    : order.status === "delivered"
-                                                        ? "bg-green-100 text-green-800 hover:bg-green-100"
-                                                        : "bg-gray-100 text-gray-800 hover:bg-gray-100"
+                                            ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                                            : order.status === "shipped"
+                                                ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
+                                                : order.status === "delivered"
+                                                    ? "bg-green-100 text-green-800 hover:bg-green-100"
+                                                    : "bg-gray-100 text-gray-800 hover:bg-gray-100"
                                             }`}
                                         variant="secondary"
                                     >
@@ -107,10 +107,13 @@ export default async function OrdersPage() {
                                     </span>
                                 </div>
                             </CardContent>
-                            <CardFooter className="bg-muted/10 border-t p-4">
-                                <p className="text-xs text-muted-foreground w-full text-center">
-                                    Items details are sent via email.
+                            <CardFooter className="bg-muted/10 border-t p-4 flex justify-between items-center">
+                                <p className="text-xs text-muted-foreground">
+                                    {order.status === "pending" ? "Processing order" : "Check details ->"}
                                 </p>
+                                <Button asChild size="sm" variant="secondary">
+                                    <Link href={`/store/orders/${order.id}`}>View Details</Link>
+                                </Button>
                             </CardFooter>
                         </Card>
                     ))}

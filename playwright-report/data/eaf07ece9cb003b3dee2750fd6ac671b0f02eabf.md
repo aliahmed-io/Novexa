@@ -1,0 +1,113 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - heading "Redefining Footwear" [level=1] [ref=e7]
+        - paragraph [ref=e8]: Experience the perfect blend of style, comfort, and innovation. Our premium collection is designed for those who demand the best.
+      - generic [ref=e9]:
+        - link "Shop Collection" [ref=e10]:
+          - /url: /store/shop
+        - link "Learn More" [ref=e11]:
+          - /url: "#about"
+          - text: Learn More
+          - img
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - img [ref=e21]
+        - heading "Premium Materials" [level=3] [ref=e24]
+        - paragraph [ref=e25]: Crafted from the finest fabrics for durability and comfort that lasts.
+      - generic [ref=e26]:
+        - img [ref=e28]
+        - heading "Modern Design" [level=3] [ref=e30]
+        - paragraph [ref=e31]: Sleek, contemporary aesthetics that fit perfectly with any style.
+      - generic [ref=e32]:
+        - img [ref=e34]
+        - heading "Sustainable" [level=3] [ref=e37]
+        - paragraph [ref=e38]: Eco-friendly production processes that respect the planet.
+    - generic [ref=e40]:
+      - generic [ref=e41]:
+        - heading "Curated Collections" [level=2] [ref=e42]
+        - paragraph [ref=e43]: Explore our latest releases and find the perfect piece to elevate your look.
+      - generic [ref=e44]:
+        - link "All Collection New Arrivals Shop Now →" [ref=e45]:
+          - /url: /store/products/all
+          - img "All Collection" [ref=e46]
+          - generic [ref=e48]:
+            - heading "New Arrivals" [level=3] [ref=e49]
+            - generic [ref=e50]: Shop Now →
+        - link "Women's Collection For Her Shop Now →" [ref=e51]:
+          - /url: /store/products/women
+          - img "Women's Collection" [ref=e52]
+          - generic [ref=e54]:
+            - heading "For Her" [level=3] [ref=e55]
+            - generic [ref=e56]: Shop Now →
+        - link "Men's Collection For Him Shop Now →" [ref=e57]:
+          - /url: /store/products/men
+          - img "Men's Collection" [ref=e58]
+          - generic [ref=e60]:
+            - heading "For Him" [level=3] [ref=e61]
+            - generic [ref=e62]: Shop Now →
+    - generic [ref=e65]:
+      - img "About Novexa" [ref=e67]
+      - generic [ref=e69]:
+        - generic [ref=e70]: Our Story
+        - heading "Crafting the Future of Style" [level=2] [ref=e71]
+        - paragraph [ref=e72]: At Novexa, we believe that headwear is more than just an accessory—it's a statement. Born from a passion for design and a commitment to quality, we've set out to redefine what it means to wear a hat.
+        - paragraph [ref=e73]: Every piece in our collection is meticulously crafted using premium materials and innovative techniques. We blend timeless aesthetics with modern comfort to create products that stand the test of time.
+        - link "Read More About Us" [ref=e75]:
+          - /url: /about
+    - generic [ref=e77]:
+      - heading "What Our Customers Say" [level=2] [ref=e78]
+      - generic [ref=e79]:
+        - generic [ref=e80]:
+          - generic [ref=e81]:
+            - img [ref=e82]
+            - img [ref=e84]
+            - img [ref=e86]
+            - img [ref=e88]
+            - img [ref=e90]
+          - paragraph [ref=e92]: "\"The quality of these hats is unmatched. I've never felt more confident in my style.\""
+          - generic [ref=e93]:
+            - img "Alex Johnson" [ref=e95]
+            - generic [ref=e96]:
+              - heading "Alex Johnson" [level=4] [ref=e97]
+              - paragraph [ref=e98]: Fashion Enthusiast
+        - generic [ref=e99]:
+          - generic [ref=e100]:
+            - img [ref=e101]
+            - img [ref=e103]
+            - img [ref=e105]
+            - img [ref=e107]
+            - img [ref=e109]
+          - paragraph [ref=e111]: "\"Absolutely love the attention to detail. A must-have for anyone who appreciates good design.\""
+          - generic [ref=e112]:
+            - img "Sarah Williams" [ref=e114]
+            - generic [ref=e115]:
+              - heading "Sarah Williams" [level=4] [ref=e116]
+              - paragraph [ref=e117]: Designer
+        - generic [ref=e118]:
+          - generic [ref=e119]:
+            - img [ref=e120]
+            - img [ref=e122]
+            - img [ref=e124]
+            - img [ref=e126]
+            - img [ref=e128]
+          - paragraph [ref=e130]: "\"Fast shipping and excellent customer service. The product exceeded my expectations.\""
+          - generic [ref=e131]:
+            - img "Michael Chen" [ref=e133]
+            - generic [ref=e134]:
+              - heading "Michael Chen" [level=4] [ref=e135]
+              - paragraph [ref=e136]: Verified Buyer
+    - generic [ref=e140]:
+      - generic [ref=e141]:
+        - heading "Stay in the Loop" [level=2] [ref=e142]
+        - paragraph [ref=e143]: Subscribe to our newsletter for exclusive offers, new drops, and style inspiration.
+      - generic [ref=e144]:
+        - textbox "Enter your email" [ref=e145]
+        - button "Subscribe" [ref=e146]
+      - paragraph [ref=e147]: By subscribing, you agree to our Terms of Service and Privacy Policy.
+  - region "Notifications alt+T"
+```

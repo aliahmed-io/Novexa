@@ -38,7 +38,13 @@ export function UserDropdown({ email, name, userImage, isDashboardView = false }
         {isDashboardView ? (
           <>
             <DropdownMenuItem asChild>
+              <Link href="/store/account">My Account</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
               <Link href="/store/orders">My Orders</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/store/wishlist">My Wishlist</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
@@ -48,6 +54,9 @@ export function UserDropdown({ email, name, userImage, isDashboardView = false }
           </>
         ) : (
           <>
+            <DropdownMenuItem asChild>
+              <Link href="/store/account">My Account</Link>
+            </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href="/store/orders">My Orders</Link>
             </DropdownMenuItem>

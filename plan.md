@@ -80,17 +80,7 @@ This section outlines the path to a fully featured, high-value e-commerce platfo
 
 
 
-
-
-
-
-
-
-
-
-
-
-### Business Suggestions
+### section 3: business suggestions
 1.  **Email Marketing**: Integrate **Resend** or **SendGrid** to send abandoned cart emails and order confirmations. This is the highest ROI activity you can add.
 2.  **SEO & Metadata**: Ensure every product page has dynamic `metadata` (OpenGraph images, titles, descriptions) so links look good on social media.
 3.  **Trust Signals**: Add a "Verified by Stripe" badge and more detailed return policies to the footer to increase conversion rates.
@@ -99,6 +89,8 @@ This section outlines the path to a fully featured, high-value e-commerce platfo
 ### Development Suggestions
 1.  **Testing**: Implement **Playwright** for End-to-End (E2E) testing. Critical for payments and checkout flows to ensure they never break.
 2.  **Accessibility**: Audit the site with **Lighthouse**. Ensure all buttons have `aria-labels` and colors have sufficient contrast.
+
+### Section 4: Current Issues
 
 
 ### Section 5: Good Ideas for Future
@@ -118,4 +110,4 @@ This section outlines the path to a fully featured, high-value e-commerce platfo
 - **Price Impact**: +$200 value.
 
 
-### Section 4: Current Issues
+

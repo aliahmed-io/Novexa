@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -8,16 +9,33 @@ datasource db {
 }
 
 model User {
-  id            String         @id @unique
-  email         String
-  firstName     String
-  lastName      String
-  profileImage  String
-  createdAt     DateTime       @default(now())
-  chatSessions  ChatSession[]
-  orders        Order[]
-  reviews       Review[]
-  tryOnSessions TryOnSession[]
+  id                     String                @id @unique
+  email                  String
+  firstName              String
+  lastName               String
+  profileImage           String
+  createdAt              DateTime              @default(now())
+  chatSessions           ChatSession[]
+  orders                 Order[]
+  reviews                Review[]
+  tryOnSessions          TryOnSession[]
+  newsletterSubscription NewsletterSubscriber?
+  auditLogs              AuditLog[]
+  returnRequests         ReturnRequest[]
+  addresses              Address[]
+  wishlist               WishlistItem[]
+}
+
+model WishlistItem {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
 }
 
 model Product {
@@ -47,6 +65,8 @@ model Product {
   category           Category       @relation(fields: [categoryId], references: [id])
   reviews            Review[]
   tryOnSessions      TryOnSession[]
+  orderItems         OrderItem[]
+  wishlistItems      WishlistItem[]
 }
 
 model Category {
@@ -67,16 +87,30 @@ model Banner {
 }
 
 model Order {
-  id         String      @id @default(uuid())
-  status     OrderStatus @default(pending)
-  amount     Int
-  userId     String?
-  createdAt  DateTime    @default(now())
-  discountId String?
-  discount   Discount?   @relation(fields: [discountId], references: [id])
-  User       User?       @relation(fields: [userId], references: [id])
-  payment    Payment?
-  shipment   Shipment?
+  id                   String          @id @default(uuid())
+  status               OrderStatus     @default(pending)
+  amount               Int
+  userId               String?
+  createdAt            DateTime        @default(now())
+  discountId           String?
+  discount             Discount?       @relation(fields: [discountId], references: [id])
+  User                 User?           @relation(fields: [userId], references: [id])
+  payment              Payment?
+  shipment             Shipment?
+  returnRequests       ReturnRequest[]
+  // Shipping address snapshot
+  shippingName         String?
+  shippingPhone        String?
+  shippingStreet1      String?
+  shippingStreet2      String?
+  shippingCity         String?
+  shippingState        String?
+  shippingPostalCode   String?
+  shippingCountry      String?         @default("US")
+  shippingRateId       String?
+  shippingCost         Int             @default(0)
+  shippingServiceLevel String?
+  orderItems           OrderItem[]
 }
 
 model Payment {
@@ -209,4 +243,66 @@ enum MainCategory {
   MEN
   WOMEN
   KIDS
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  userId    String?  @unique
+  status    String   @default("subscribed") // subscribed, unsubscribed
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  targetType String
+  targetId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+}
+
+model ReturnRequest {
+  id           String   @id @default(uuid())
+  orderId      String
+  userId       String
+  reason       String
+  status       String   @default("PENDING") // PENDING, APPROVED, REJECTED, REFUNDED
+  refundAmount Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  order        Order    @relation(fields: [orderId], references: [id])
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Int
+  name      String
+  image     String?
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model Address {
+  id         String  @id @default(uuid())
+  userId     String
+  name       String
+  street1    String
+  street2    String?
+  city       String
+  state      String
+  postalCode String
+  country    String  @default("US")
+  phone      String?
+  isDefault  Boolean @default(false)
+  user       User    @relation(fields: [userId], references: [id])
 }

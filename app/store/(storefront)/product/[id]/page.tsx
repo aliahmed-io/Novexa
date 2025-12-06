@@ -1,5 +1,6 @@
 import { addItem } from "@/app/store/actions";
 import { Button } from "@/components/ui/button";
+import { WishlistButton } from "@/components/storefront/WishlistButton";
 import { ShoppingBag, Star } from "lucide-react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -77,9 +78,14 @@ export default async function ProductIdPage({
                 <p className="text-base text-gray-700 mt-6">{data.description}</p>
 
                 <form action={addItem.bind(null, data.id)}>
-                    <Button size="lg" className="w-full mt-10">
-                        <ShoppingBag className="mr-4 h-5 w-5" /> Add to Bag
-                    </Button>
+                    <div className="flex gap-4 mt-10">
+                        <Button size="lg" className="w-full font-bold">
+                            <ShoppingBag className="mr-4 h-5 w-5" /> Add to Bag
+                        </Button>
+                        <div className="flex-shrink-0">
+                            <WishlistButton productId={data.id} />
+                        </div>
+                    </div>
                 </form>
             </div>
 

@@ -32,16 +32,11 @@ export async function sendBroadcastEmail(formData: FormData) {
                 select: { email: true },
             });
         } else if (audience === "newsletter") {
-            // Assuming we have a NewsletterSubscriber model or a flag on User
-            // If not, we'll just fetch all for now or check a subscription table
-            // For this implementation, let's assume we check the User table for now
-            // Or if you have a separate NewsletterSubscriber model, use that.
-            // Based on previous context, we might not have a dedicated newsletter flag on User yet.
-            // Let's fetch all users for now as a fallback, or if you have a specific logic, insert here.
-            // TODO: Implement actual newsletter logic if schema exists.
-            users = await prisma.user.findMany({
+            const subscribers = await prisma.newsletterSubscriber.findMany({
+                where: { status: "subscribed" },
                 select: { email: true },
             });
+            users = subscribers.map(sub => ({ email: sub.email }));
         } else if (audience === "specific") {
             if (!specificEmailsJson) {
                 return { error: "Specific recipients are required" };

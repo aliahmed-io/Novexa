@@ -1,6 +1,7 @@
 
 import { type ReactNode } from "react";
 import { Metadata } from "next";
+import { Footer } from "@/components/storefront/Footer";
 
 export const metadata: Metadata = {
     title: "Novexa - Premium Headwear",
@@ -15,9 +16,9 @@ export default function LandingPageLayout({
 }) {
     return (
         <>
-            
+
             <main className="min-h-screen">{children}</main>
-            
+            <Footer />
         </>
     );
 }

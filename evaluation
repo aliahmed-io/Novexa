@@ -1,0 +1,312 @@
+# Novexa – Honest Project Evaluation
+
+_Last updated: 2025-12-05_
+
+---
+
+## 1. How complete is the website overall?
+
+**Blunt answer:** Functionally, you are around **70–75% of the way to a sellable MVP**, but only **50–60% of the way to a production-ready commercial product** that a non-technical buyer could operate safely.
+
+- **What works end-to-end (if env is configured):**
+  - Auth via Kinde.
+  - Browsing products with filters/search.
+  - Cart backed by Redis.
+  - Stripe checkout (session creation, redirect, webhook, payment & order records, success/cancel pages).
+  - User order history page.
+  - Contact form + admin contact management.
+  - Admin dashboard (products, categories, discounts, email broadcast, banner images, orders table, analytics).
+  - AI-powered search and ShoeAssistant (Gemini-based), assuming API keys.
+  - Basic shipping label purchase flow via Shippo from the admin dashboard.
+
+- **What is still prototype / incomplete / risky:**
+  - No real shipping address capture from users; shipping uses **hardcoded demo address**.
+  - No Shippo webhook integration, so **shipment status and order status are not truly automated**.
+  - No wishlist, no account profile management, no returns/exchanges flow.
+  - No tests (unit/E2E), no monitoring, no error tracking, minimal logging.
+  - Legal/compliance basics (ToS, Privacy Policy, cookie banner) are missing.
+  - Some AI features (3D model generation, TryOnSession) exist in schema but are not wired into a complete UX.
+
+If a serious buyer asked “Can I launch this next week?”, the honest answer is **not without additional work**.
+
+---
+
+## 2. Which features are not fully implemented yet?
+
+### 2.1 Shipping & fulfillment
+
+- **User shipping address:**
+  - `User` model has **no address fields** (just name, email, profileImage).
+  - `lib/shippo.ts` + `orders/actions.ts` use a **placeholder address** (`"123 Main St", New York, NY 10001`) for the customer side.
+  - There is **no UI at checkout to collect real shipping address** or choose shipping options.
+
+- **Shipment automation & tracking:**
+  - `Shipment` model exists and `buyShippingLabel` writes tracking number, carrier, label URL, ETA.
+  - Order status is set to `shipped` when a label is bought.
+  - **Missing:** Shippo webhooks to move `ShipmentStatus` from `PENDING -> SHIPPED -> DELIVERED -> RETURNED` and sync `OrderStatus` accordingly.
+  - No customer-facing shipment tracking page; they do not see status beyond “pending/shipped/delivered” in `orders` summary with no item-level detail.
+
+### 2.2 AI / 3D / Try-on
+
+- **3D model generation (Meshy):**
+  - There are `generate3DModel` / `delete3DModel` server actions and fields on `Product` (`modelUrl`, `meshyTaskId`, `meshyStatus`, `meshyProgress`).
+  - **Missing pieces:**
+    - Background polling / webhook from Meshy to update progress and `modelUrl`.
+    - Clear admin UX for monitoring per-product generation status.
+
+- **AI virtual try-on (TryOnSession):**
+  - `TryOnSession` table exists in Prisma.
+  - There is **no visible UI, pages, or actions** implementing user upload and output gallery.
+  - This is currently **schema-only**; not a ship-ready feature.
+
+- **AI assistant & AI search:**
+  - Implemented with Google Gemini (`/api/assistant`, `/api/search` + `filterProducts`).
+  - Requires `GEMINI_API_KEY` and model name; if missing, assistant/search fail or fall back.
+  - There’s no usage limiting, logging, or fallback messaging beyond basic error handling.
+
+### 2.3 Marketing / CRM
+
+- **Broadcast email system (Resend):**
+  - `resend` client is configured with a fallback dummy key (`re_missing_key`) and warns if missing key.
+  - Admin broadcast email feature exists with segmentation options but:
+    - Newsletter audience logic is left as a **TODO**; currently just fetches all users.
+    - No unsubscribe / subscription preference model.
+    - Using `onboarding@resend.dev` sender; not ready for a real brand domain.
+
+- **Transactional emails:**
+  - Stripe webhook sends an order confirmation email via `Resend` + `OrderConfirmationEmail` **if** `RESEND_API_KEY` is set.
+  - No emails for shipping updates, delivery confirmation beyond Stripe payment confirmation.
+
+### 2.4 User account / UX gaps
+
+- **Wishlist / favorites:** Not implemented at all.
+- **Profile & addresses:** No page for managing addresses, phone numbers, or saved payment methods.
+- **Returns / refunds:** No frontend flows or admin tooling; Stripe refunds would need to be done manually via dashboard with no sync into your DB.
+- **Reviews:** CRUD for reviews exists, but there’s no moderation tooling beyond a bad language filter.
+
+### 2.5 Operational / engineering gaps
+
+- **Tests:** 0 visible tests (no Jest/Playwright config, no spec files). Checkout, shipping, and AI flows are **untested** beyond manual testing.
+- **Monitoring & logging:** Only basic console logs; no Sentry, no structured logs, no uptime checks.
+- **Security hardening:**
+  - No explicit rate limiting on `/api/assistant`, `/api/search`, `/api/checkout`, or contact form.
+  - No CSRF protections beyond what Next’s patterns implicitly provide.
+  - API keys are used directly without per-feature feature-flagging.
+
+---
+
+## 3. Current website evaluation (high-level)
+
+**Short version:** This is a **visually impressive, technically modern, feature-rich prototype**. It is **not yet an operational e‑commerce business in a box**.
+
+- **Strengths:**
+  - Strong visual design with 3D product viewer, polished UI, and modern components.
+  - Real Stripe integration, Redis cart, and Prisma/Postgres schema for orders, payments, shipments.
+  - Solid admin panel: product, categories, discounts, banners, email broadcasting, orders, contact center.
+  - Advanced “nice to have” features: AI assistant, AI-powered search, AI-enriched product metadata, 3D viewer.
+
+- **Weaknesses / risks:**
+  - Shipping is only half-implemented: great backend pieces, missing real address capture and automation.
+  - No tests or monitoring; a buyer cannot trust that payments & orders won’t silently break.
+  - Legal and compliance are missing (ToS/Privacy/Cookies/return policy pages).
+  - Documentation is minimal; a non-technical store owner would struggle.
+
+This is **sellable as a “premium prototype / codebase”** right now, but **not sellable as a plug-and-play production store**.
+
+---
+
+## 4. Ratings (0–10)
+
+### 4.1 Design (UI & visual polish) – **9/10**
+
+- Responsive layouts using Tailwind and modern patterns.
+- 3D landing page, Antigravity viewer, and product detail page are visually strong.
+- Consistent usage of design system components (`Button`, `Card`, `Badge`, etc.).
+- Small deduction: no clear brand system (typography/spacing docs, design tokens) and some minor naming inconsistencies.
+
+### 4.2 Performance – **8/10** (code-level estimate)
+
+- Uses Next.js App Router, server components, and `noStore` on dynamic server pages to avoid stale data.
+- Cart uses Redis (Upstash), which is performant.
+- Product listing pages use pagination/limits and local filtering; heavy things like AI ranking are optional.
+- Potential issues:
+  - AI endpoints can be slow or fail; no graceful degradation beyond a simple error message.
+  - Some components may overfetch without aggressive caching or image optimization review.
+
+### 4.3 UX (user journey) – **7/10**
+
+- Core flow **from landing → shop → product → bag → checkout → order history** is coherent.
+- Nice touches: custom 404, loading skeletons, AI assistant, search overlay, filters on product listing.
+- Missing UX pieces:
+  - No clear checkout steps (shipping → payment → review) – it jumps straight from cart to Stripe.
+  - No way for users to manage addresses, saved preferences, or notification settings.
+  - No visible order detail page (line items, shipping address, tracking link) – only order summary.
+
+### 4.4 User functionality (customer-facing features) – **7/10**
+
+- **Implemented:**
+  - Auth, browse, search (standard + AI), filter, sort.
+  - View product details, 3D viewer, reviews.
+  - Add to cart, discount codes, checkout via Stripe.
+  - Contact form, order history.
+
+- **Missing or thin:**
+  - Wishlist, recently viewed, recommended products sections.
+  - Address book, profile, returns/exchanges flow.
+  - Shipment tracking details, tracking link, detailed receipt view.
+
+### 4.5 Admin functionality – **8.5/10**
+
+- **Strong:**
+  - Products CRUD with bulk update/delete and status handling.
+  - Categories and discounts management.
+  - Banner management.
+  - Orders table with status editing and integrated shipping label purchase.
+  - Contact center with statuses and “Mark as read” tooling.
+  - Broadcast email system with basic segmentation UI.
+  - Dashboard analytics (revenue chart, recent sales, AI insights widget).
+
+- **Weak:**
+  - Newsletter segmentation is faked; no real subscriber model.
+  - No admin-facing logs/audit trail (who changed what, when).
+  - No configuration UI for keys/integration settings (Stripe, Shippo, Resend, Gemini).
+
+### 4.6 Overall rating – **7.5/10 as a codebase, 6/10 as a product you can sell as-is**
+
+- As a developer-focused asset: **7.5–8/10**.
+- As a “turn-key shop for a non-dev store owner”: **6/10** due to missing operational pieces.
+
+---
+
+## 5. What currently stops you from selling this website as a real store?
+
+Here are the **hard blockers**:
+
+1. **Shipping is not production-grade.**
+   - No real address capture or validation at checkout.
+   - No shipping method selection by customer.
+   - Hardcoded demo addresses in backend.
+   - No automated shipment status updates from Shippo.
+
+2. **Legal and policy pages are missing.**
+   - No clear Terms of Service, Privacy Policy, Returns & Refunds, Shipping policy.
+   - No cookie consent / tracking disclosure if you add analytics later.
+
+3. **Monitoring, error tracking, and tests are missing.**
+   - If Stripe or Shippo fails, you mostly log to console.
+   - No alarms, no E2E tests to protect checkout.
+
+4. **Configuration and documentation are not buyer-friendly.**
+   - A non-technical buyer would have to wire up: Kinde, Stripe, Resend, Shippo, Upstash Redis, Postgres (Neon), Gemini, UploadThing.
+   - There’s no single deployment guide or env var reference beyond `.env`/`.env.local`.
+
+5. **Security & abuse controls are minimal.**
+   - No rate limiting on expensive AI and email endpoints.
+   - No brute-force protection on contact form or broadcast email.
+
+Until you address at least shipping, legal pages, and a basic observability/test story, you **should not market this as “ready to run a real store today”**.
+
+---
+
+## 6. Most important missing features or areas to improve
+
+### 6.1 Shipping & checkout
+
+- Add a **checkout step that collects shipping details** (name, address, phone) and persists them.
+- Integrate shipping options (cheapest, fastest, etc.) from Shippo and let the user pick.
+- Implement **Shippo webhooks** to update `Shipment` and `Order` statuses.
+- Show tracking information (carrier + tracking number + link) on the `My Orders` page.
+
+### 6.2 User account & self-service
+
+- Add a **Profile / Account** page:
+  - Manage name, email (with verification flow), profile image.
+  - Manage multiple addresses.
+- Add **Wishlist / Favorites** so users can save items.
+- Add basic **returns / refunds** guidance and at least a manual request form connected to admin.
+
+### 6.3 Admin & operations
+
+- Implement a **NewsletterSubscriber** model or a subscription flag on `User` and wire it into broadcast email.
+- Add **audit logs** for critical changes (prices, discounts, email campaigns).
+- Add a simple **admin dashboard for integration health** (Stripe/Shippo/Resend/Gemini status checks).
+
+### 6.4 Reliability, tests, and monitoring
+
+- Add **Playwright** E2E tests for:
+  - Login, browse, add to cart, apply discount, checkout, webhook, order history.
+  - Admin login, products CRUD, shipping label purchase.
+- Add **unit tests** for core business logic (discounts, cart operations, filters).
+- Integrate **Sentry or similar** for error tracking and a basic uptime check on `/api/health`.
+
+### 6.5 Security & abuse prevention
+
+- Add **rate limiting** to:
+  - `/api/assistant`, `/api/search` (AI endpoints).
+  - `/api/checkout`.
+  - Contact form and broadcast email actions.
+- Ensure all API routes validate input and hide internal error details from users.
+
+### 6.6 SEO & marketing polish
+
+- Ensure dynamic `metadata` (title, description, OpenGraph images) on product pages.
+- Add structured data (schema.org) for products.
+- Flesh out blog/landing content if you want organic traffic.
+
+---
+
+## 7. Other important questions you didn’t ask (and their blunt answers)
+
+### 7.1 Security posture – **Adequate for a prototype, not audited for production**
+
+- Uses Kinde for auth (solid), Stripe for payments (good), and doesn’t handle raw card data.
+- However:
+  - No formal security review.
+  - No clear story around admin account management (right now, hardcoded to one email).
+  - No protection against DDoS or abusive API usage.
+
+### 7.2 Scalability
+
+- Tech stack (Next.js + Postgres + Redis + Stripe + Shippo) is **inherently scalable enough** for a typical DTC shoe store.
+- Performance will be fine for thousands of users if infra is sized reasonably.
+- The bottlenecks will be external APIs (Gemini, Shippo, Resend), not your own code.
+
+### 7.3 Maintainability / code quality
+
+- Code is mostly clean, typed, and componentized.
+- Uses server actions and Prisma in a sane way.
+- Some duplication and unfinished paths (`checkOut` server action stub, newsletter TODOs) should be cleaned up before a sale.
+
+### 7.4 Deployment readiness
+
+- Next.js project is deployable to Vercel or similar.
+- You have multiple third-party services to configure; without a **single deployment playbook**, handover will be painful.
+
+---
+
+## 8. Recommended next steps before selling
+
+If your goal is to sell this as a **“ready to launch” store**, I would prioritize, in order:
+
+1. **Finish shipping & checkout UX (address capture + Shippo webhooks + tracking in orders).**
+2. **Add legal/policy pages and basic SEO/meta improvements.**
+3. **Add minimal monitoring (Sentry) and 2–3 Playwright E2E tests around checkout & webhook.**
+4. **Tighten email/newsletter logic and remove TODO-level hacks.**
+5. **Write a short technical + non-technical README** explaining setup, env vars, and how to operate the store.
+
+Once those are done, you can honestly pitch this as:
+
+> A modern 3D-enabled shoe e‑commerce template with AI assistant, admin dashboard, Stripe payments, and basic shipping integration – ready for customization and real-world use.
+
+---
+
+## 9. Future AI-native features to build
+
+1. **AI Chief Operating Officer (COO) Mode**
+   - Weekly or on-demand report that summarizes growth, bottlenecks, and recommended actions, wired directly into server actions (e.g. create discounts, launch campaigns, adjust operations).
+2. **Auto-Generated Campaigns**
+   - One-click generation of email campaigns, social captions, and discount ideas using real product and order data, feeding into the existing Resend broadcast/email system for review and send.
+3. **AI Flagging System**
+   - Continuous monitoring of reviews, orders, payments, traffic, and support tickets to surface suspicious activity and anomalies into an Alerts view in the dashboard.
+4. **AI Dressing Room (Virtual Try-On)**
+   - Users upload a photo and select a shoe; an external model (e.g. Replicate API / Flux-based VTON) generates an image of them wearing it, storing the output and metadata in `TryOnSession` for later viewing.

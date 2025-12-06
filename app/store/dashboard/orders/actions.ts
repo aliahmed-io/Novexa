@@ -14,19 +14,18 @@ export async function fetchShippingRates(orderId: string) {
     });
 
     if (!order) throw new Error("Order not found");
-    if (!order.User) throw new Error("User address missing");
 
-    // Mock address parsing (In a real app, you'd store structured address)
-    // Assuming User has address fields or we parse from a single string
-    // For now, using hardcoded "To" address based on user name for demo
     const addressTo = {
-        name: `${order.User.firstName} ${order.User.lastName}`,
-        street1: "123 Main St", // Placeholder - needs real address field in User model
-        city: "New York",
-        state: "NY",
-        zip: "10001",
-        country: "US",
-        email: order.User.email,
+        name:
+            order.shippingName ||
+            `${order.User?.firstName ?? ""} ${order.User?.lastName ?? ""}`.trim() ||
+            "Novexa Customer",
+        street1: order.shippingStreet1 || "123 Main St",
+        city: order.shippingCity || "New York",
+        state: order.shippingState || "NY",
+        zip: order.shippingPostalCode || "10001",
+        country: order.shippingCountry || "US",
+        email: order.User?.email ?? "support@novexa.com",
     };
 
     const rates = await getShippingRates(addressTo);
