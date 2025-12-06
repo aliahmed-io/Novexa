@@ -12,7 +12,7 @@ export async function createAddress(prevState: unknown, formData: FormData) {
     const user = await getUser();
 
     if (!user) {
-        return { status: "error", error: { "": ["Unauthorized"] } };
+        return { status: "error" as const, error: { "": ["Unauthorized"] } };
     }
 
     const submission = parseWithZod(formData, {

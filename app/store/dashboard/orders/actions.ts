@@ -3,6 +3,8 @@
 import prisma from "@/lib/db";
 import { getShippingRates, purchaseLabel } from "@/lib/shippo";
 import { revalidatePath } from "next/cache";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { logAudit } from "@/lib/audit";
 
 export async function fetchShippingRates(orderId: string) {
     const order = await prisma.order.findUnique({
@@ -33,6 +35,9 @@ export async function fetchShippingRates(orderId: string) {
 }
 
 export async function buyShippingLabel(orderId: string, rateId: string) {
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+
     const transaction = await purchaseLabel(rateId);
 
     if (transaction.status !== "SUCCESS") {
@@ -65,15 +70,37 @@ export async function buyShippingLabel(orderId: string, rateId: string) {
         data: { status: "shipped" },
     });
 
+    await logAudit({
+        userId: user?.id,
+        action: "BUY_LABEL",
+        targetType: "ORDER",
+        targetId: orderId,
+        metadata: {
+            rateId,
+            transactionId: transaction.object_id,
+            trackingNumber: transaction.tracking_number,
+        },
+    });
+
     revalidatePath(`/store/dashboard/orders/${orderId}`);
     return transaction;
 }
 
 export async function updateOrderStatus(orderId: string, status: string) {
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+
     try {
         await prisma.order.update({
             where: { id: orderId },
             data: { status: status as any },
+        });
+        await logAudit({
+            userId: user?.id,
+            action: "UPDATE",
+            targetType: "ORDER_STATUS",
+            targetId: orderId,
+            metadata: { status },
         });
         revalidatePath("/store/dashboard/orders");
         return { success: true };

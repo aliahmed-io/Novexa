@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type ShippingFormProps = {
   initialAddress?: {
@@ -34,6 +35,7 @@ export function ShippingForm({ initialAddress }: ShippingFormProps) {
   const [loadingRates, setLoadingRates] = useState(false);
   const [rates, setRates] = useState<any[]>([]);
   const [selectedRate, setSelectedRate] = useState<any>(null);
+  const [subscribeToNewsletter, setSubscribeToNewsletter] = useState(true);
 
   async function fetchRates() {
     if (!form.shippingStreet1 || !form.shippingCity || !form.shippingState || !form.shippingPostalCode || !form.shippingCountry) {
@@ -87,6 +89,7 @@ export function ShippingForm({ initialAddress }: ShippingFormProps) {
         shippingRateId: selectedRate?.object_id,
         shippingCost: selectedRate?.amount,
         shippingServiceLevel: selectedRate?.provider,
+        subscribeToNewsletter,
       };
 
       const res = await fetch("/api/checkout", {
@@ -219,6 +222,22 @@ export function ShippingForm({ initialAddress }: ShippingFormProps) {
             </div>
           </div>
         )}
+      </div>
+
+      <div className="mt-6 flex items-start gap-2">
+        <Checkbox
+          id="subscribeToNewsletter"
+          checked={subscribeToNewsletter}
+          onCheckedChange={(checked) => setSubscribeToNewsletter(!!checked)}
+        />
+        <div className="space-y-1">
+          <Label htmlFor="subscribeToNewsletter" className="font-medium">
+            Email me product updates and special offers
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            You can unsubscribe at any time using the link in our emails.
+          </p>
+        </div>
       </div>
 
       <Button type="submit" size="lg" className="w-full mt-4" disabled={loading || (rates.length > 0 && !selectedRate)}>

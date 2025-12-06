@@ -44,11 +44,14 @@ async function getData() {
   return result;
 }
 
+import { IntegrationHealthWidget } from "@/components/Dashboard/IntegrationHealthWidget";
+
 export default async function Dashboard() {
   noStore();
   const data = await getData();
   return (
     <>
+      <IntegrationHealthWidget />
       <AiInsightsWidget />
       <DashboardStats />
 

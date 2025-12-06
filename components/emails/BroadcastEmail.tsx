@@ -15,9 +15,10 @@ interface BroadcastEmailProps {
     subject: string;
     message: string;
     imageUrl?: string;
+    recipientEmail?: string;
 }
 
-export const BroadcastEmail = ({ subject, message, imageUrl }: BroadcastEmailProps) => {
+export const BroadcastEmail = ({ subject, message, imageUrl, recipientEmail }: BroadcastEmailProps) => {
     return (
         <Html>
             <Head />
@@ -44,6 +45,21 @@ export const BroadcastEmail = ({ subject, message, imageUrl }: BroadcastEmailPro
                             <Text className="text-[#666666] text-[12px] leading-[24px]">
                                 This is an automated announcement from Novexa.
                             </Text>
+                            {recipientEmail && (
+                                <Text className="text-[#999999] text-[11px] leading-[20px] mt-2">
+                                    If you no longer wish to receive these emails, you can
+                                    {" "}
+                                    <a
+                                        href={`${process.env.NEXT_PUBLIC_URL || ""}/newsletter/unsubscribe?email=${encodeURIComponent(
+                                            recipientEmail
+                                        )}`}
+                                        style={{ color: "#2563EB", textDecoration: "underline" }}
+                                    >
+                                        unsubscribe here
+                                    </a>
+                                    .
+                                </Text>
+                            )}
                         </Section>
                     </Container>
                 </Body>

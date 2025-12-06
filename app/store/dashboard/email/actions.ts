@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import prisma from "@/lib/db";
 import { resend } from "@/lib/resend";
 import { BroadcastEmail } from "@/components/emails/BroadcastEmail";
+import { logAudit } from "@/lib/audit";
 
 export async function sendBroadcastEmail(formData: FormData) {
     const { getUser } = getKindeServerSession();
@@ -63,11 +64,18 @@ export async function sendBroadcastEmail(formData: FormData) {
                 from: fromEmail,
                 to: u.email,
                 subject: subject,
-                react: BroadcastEmail({ subject, message, imageUrl }),
+                react: BroadcastEmail({ subject, message, imageUrl, recipientEmail: u.email }),
             })
         );
 
         await Promise.all(emailPromises);
+
+        await logAudit({
+            userId: user.id,
+            action: "SEND_BROADCAST",
+            targetType: "EMAIL",
+            metadata: { subject, audience, recipients: validUsers.length },
+        });
 
         return { success: true };
     } catch (error) {

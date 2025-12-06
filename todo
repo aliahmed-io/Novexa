@@ -37,155 +37,6 @@ For each area:
 
 ---
 
-## 3. Admin & Operations
-
-### 3.1 Newsletter subscribers & broadcast cleanup
-
-- **Problem**
-  - Broadcast emails treat all users as subscribers; there is no explicit subscription model or unsubscribe.
-
-- **Solution**
-  - Introduce a **NewsletterSubscriber** model and subscription preferences.
-
-- **How to implement**
-  1. **Data model** – ✅ already done
-     - `NewsletterSubscriber` model exists and is linked to `User` via `User.newsletterSubscription`.
-  2. **Subscription flows**
-     - Newsletter signup form on landing and footer.
-     - Checkbox during checkout: “Subscribe to updates”.
-     - Unsubscribe link in all marketing emails (updates `status`).
-  3. **Broadcast targeting**
-     - Update broadcast query to pull from `NewsletterSubscriber` where `status = subscribed`.
-
-- **Impacted code**
-  - Existing:
-    - Admin broadcast email page and actions under `app/store/dashboard`.
-  - New:
-    - API / actions for subscribe/unsubscribe.
-
-### 3.2 Audit log for critical actions
-
-- **Problem**
-  - No audit trail for who changed prices, created discounts, sent campaigns.
-
-- **Solution**
-  - Add minimal **AuditLog** model and a helper to log critical actions.
-
-- **How to implement**
-  1. **Data model** – ✅ already done
-     - `AuditLog` model exists and is linked to `User` via `User.auditLogs`.
-  2. **Helper**
-     - `lib/audit.ts` with `logAudit(userId, action, targetType, targetId, metadata)`.
-  3. **Wire into admin actions**
-     - Log on: product create/update/delete, discount changes, broadcast email send, manual order/shipment status changes.
-
-- **Impacted code**
-  - Existing:
-    - Admin server actions for products, discounts, orders, broadcast.
-  - New:
-    - `lib/audit.ts` helper.
-    - Admin Audit log page `app/store/dashboard/audit/page.tsx` (optional UI).
-
-### 3.3 Integration health dashboard
-
-- **Problem**
-  - No quick way for a buyer to know if Stripe/Shippo/Resend/Gemini/Redis are correctly configured.
-
-- **Solution**
-  - Add an **Integration Health** widget/page in the admin dashboard.
-
-- **How to implement**
-  1. **Health checks**
-     - For each service, implement a lightweight check (e.g. list products/test call or config validation).
-     - Surface as “OK / Misconfigured (missing env) / Error (API failing)”.
-  2. **UI**
-     - On dashboard home, show card with integration statuses.
-
-- **Impacted code**
-  - Existing:
-    - `app/store/dashboard/page.tsx` (main admin dashboard) – add widget.
-  - New:
-    - `lib/integrations/health.ts` – functions to check each integration.
-
----
-
-## 4. Reliability, Tests & Monitoring
-
-### 4.1 Error tracking (Sentry or similar)
-
-- **Problem**
-  - No centralized error tracking; production errors will be invisible.
-
-- **Solution**
-  - Add Sentry (or similar) to capture server and client errors.
-
-- **How to implement**
-  1. Follow Sentry Next.js setup docs (SDK init, DSN env var).
-  2. Wrap API routes and key server actions with error capture as needed.
-
-- **Impacted code**
-  - New:
-    - `sentry.client.config.ts` / `sentry.server.config.ts` (per Sentry docs).
-  - Existing:
-    - Possibly small wrappers around key API routes for extra context.
-
-### 4.2 E2E tests with Playwright
-
-- **Problem**
-  - No automated tests; checkout, shipping, and admin flows are unprotected.
-
-- **Solution**
-  - Add a **minimal but meaningful** suite of Playwright tests.
-
-- **How to implement**
-  1. Install Playwright and set up config.
-  2. Write tests for:
-     - Customer: login → browse → add to cart → checkout → Stripe test payment → order history.
-     - Admin: login → view orders → buy shipping label.
-     - Smoke test for AI assistant endpoint (if key present).
-
-- **Impacted code**
-  - New:
-    - `playwright.config.ts`
-    - `tests/e2e/*` files.
-
-### 4.3 Unit tests for business logic
-
-- **Problem**
-  - Discount logic, cart calculations, and product filters are untested.
-
-- **Solution**
-  - Add Jest/Vitest unit tests around key pure functions.
-
-- **How to implement**
-  1. Install Jest/Vitest.
-  2. Identify pure helpers (e.g. formatters, discount calculators, filter functions).
-  3. Write tests for edge cases (no discount, multiple discounts, invalid codes, etc.).
-
-- **Impacted code**
-  - Existing helpers under `lib/*`.
-  - New `__tests__/*` or `tests/unit/*`.
-
-### 4.4 Healthcheck endpoint & basic logging
-
-- **Problem**
-  - No `/api/health` endpoint; limited logging.
-
-- **Solution**
-  - Add simple health endpoint and structured logging for critical operations.
-
-- **How to implement**
-  1. Create `/api/health` that checks DB and returns `ok`.
-  2. Add structured logs (JSON) for checkout, webhooks, and Shippo integration.
-
-- **Impacted code**
-  - New:
-    - `app/api/health/route.ts`.
-  - Existing:
-    - `app/api/checkout/route.ts`, webhook routes.
-
----
-
 ## 5. Security & Abuse Prevention
 
 ### 5.1 Rate limiting for critical endpoints
@@ -232,19 +83,19 @@ For each area:
 ### 6.1 Legal/policy pages
 
 - **Problem**
-  - No Terms of Service, Privacy Policy, Returns & Refunds, or Shipping policy.
+  - A basic Privacy Policy page now exists, but there are still no Terms of Service, Returns & Refunds, or Shipping policy pages, and legal links are not yet wired into the footer.
 
 - **Solution**
-  - Add static pages for each policy and link them in the footer.
+  - Add the remaining static legal pages and link all policies in the footer.
 
 - **How to implement**
   1. Create static routes:
      - `/legal/terms`
-     - `/legal/privacy`
      - `/legal/shipping`
      - `/legal/returns`
-  2. Use simple but professional copy (can be generated then reviewed).
-  3. Update footer to link to these pages.
+  2. Review and, if desired, consolidate the existing Privacy Policy route with a `/legal/privacy` alias or redirect.
+  3. Use simple but professional copy (can be generated then reviewed).
+  4. Update the storefront footer to link to Terms, Privacy, Shipping, and Returns pages.
 
 - **Impacted code**
   - Existing:
@@ -485,15 +336,61 @@ For each area:
 ## 11. Execution Order (High-Level)
 
 1. Stabilize schema & DB (`prisma db push`).
-2. Finish shipping & checkout (address, shipping options, Shippo webhooks, order detail + tracking).
-3. Add legal pages & footer links.
-4. Implement basic monitoring (Sentry) + minimal `/api/health`.
-5. Add 2–3 key Playwright E2E tests around checkout/webhooks.
-6. Tighten email/newsletter with subscriber model + unsubscribe.
+2. Add legal pages & footer links.
+3. Implement basic monitoring (Sentry) + minimal `/api/health`.
+4. Add 2–3 key Playwright E2E tests around checkout/webhooks.
+5. Tighten email/newsletter with subscriber model + unsubscribe. **(✅ implemented)**
+6. Implement admin discounts management UI and wire it to the existing discount logic. **(✅ implemented)**
 7. Add SEO metadata + product structured data.
-8. Implement user account + wishlists (if time).
+8. Add integration health dashboard plus basic rate limiting and input validation. **(Integration health dashboard ✅ implemented; rate limiting & broader validation still TODO.)**
 9. Add AI COO Mode as the first flagship AI feature.
 10. Polish existing AI features (assistant/search, Meshy UX, TryOnSession MVP).
 11. Write docs (technical README, operations guide, env cheat sheet).
+12. Run a final QA & performance pass (cross-browser/device checks, Lighthouse, full staging verification).
+
+## 12. Final QA, Performance & Launch
+
+- **Problem**
+  - Even after all features are implemented, there is no explicit checklist to ensure quality across browsers, devices, and real integrations before handing the project to a buyer.
+
+- **Solution**
+  - Add a lightweight **QA & launch** phase focused on manual testing and basic performance checks, and fix any critical issues discovered.
+
+- **How to implement**
+  1. Cross-browser/device sanity checks:
+     - Test key flows (browse → product → add to bag → checkout → order history) on at least Chrome, Safari, Firefox, and a mobile browser.
+     - Test admin flows (products, categories, orders, returns, emails, discounts) on desktop.
+  2. Run Lighthouse (or equivalent) on landing, product page, cart, and checkout:
+     - Address any obvious LCP/CLS issues (e.g. large images, layout shifts).
+  3. Verify all external services on a staging environment:
+     - Stripe test payments, Shippo rates/labels, Resend emails, Kinde auth, Redis, Neon, Gemini, UploadThing.
+  4. Capture and fix any high-severity bugs found during this pass; defer low-severity UI nits to future work.
+
+- **Impacted code**
+  - Potentially any part of the app; this is a coordination step that may result in small fixes across the codebase rather than a single file.
 
 Following this list will move the project from **7.5/10 codebase, 6/10 product** to something you can honestly sell as a **ready-to-launch AI-powered e‑commerce store**.
+
+---
+
+## 13. Optional Paid Add-Ons (Buyer Extensions)
+
+These are **not required** for the core v1 that you sell, but can be offered as **paid add-on work** for buyers who want to invest more.
+
+### 13.1 Multi-language support
+
+- **Idea**
+  - Allow the storefront and product content to be localized into multiple languages.
+
+- **High-level approach**
+  - Add a language switcher and language model/tables.
+  - Make product/category copy translatable per language.
+
+### 13.2 Multi-currency support
+
+- **Idea**
+  - Allow prices to be shown and charged in multiple currencies.
+
+- **High-level approach**
+  - Add a currency switcher and pricing strategy (per-currency prices or FX conversion).
+  - Ensure Stripe configuration and price presentation stay consistent with the chosen model.

@@ -194,7 +194,6 @@ export async function POST(req: NextRequest) {
         name: true,
         price: true,
         description: true,
-        category: true,
         images: true,
         color: true,
         style: true,
@@ -203,7 +202,7 @@ export async function POST(req: NextRequest) {
         tags: true,
         features: true,
         mainCategory: true, // Fetch mainCategory
-        Category: { // Fetch related Category
+        category: { // Fetch related Category
           select: {
             name: true
           }

@@ -24,6 +24,12 @@ export async function POST(req: Request) {
 
     const session = event.data.object as Stripe.Checkout.Session;
 
+    console.log("Stripe Webhook Received", JSON.stringify({
+        id: event.id,
+        type: event.type,
+        created: new Date(event.created * 1000).toISOString(),
+    }));
+
     if (event.type === "checkout.session.completed") {
         const orderId = session.metadata?.orderId;
 
@@ -47,6 +53,12 @@ export async function POST(req: Request) {
                     currency: session.currency || "usd",
                 },
             });
+
+            console.log("Order Payment Completed", JSON.stringify({
+                orderId: orderId,
+                amount: session.amount_total,
+                transactionId: session.payment_intent,
+            }));
 
             // Send Order Confirmation Email
             const customerEmail = session.customer_details?.email;

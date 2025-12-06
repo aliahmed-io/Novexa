@@ -30,7 +30,7 @@ export default function ImportProductsPage() {
                     setCsvData(results.data);
                     setIsPreviewing(true);
                 },
-                error: (error) => {
+                error: (error: any) => {
                     toast.error("Error parsing CSV file");
                     console.error(error);
                 },
@@ -48,7 +48,7 @@ export default function ImportProductsPage() {
                 setCsvData(results.data);
                 setIsPreviewing(true);
             },
-            error: (error) => {
+            error: (error: any) => {
                 toast.error("Error parsing CSV text");
                 console.error(error);
             },

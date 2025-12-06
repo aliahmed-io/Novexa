@@ -13,6 +13,7 @@ import { bannerSchema, productSchema, reviewSchema } from "@/lib/zodSchemas";
 import { Stripe } from "stripe";
 import { ProductStatus } from "@prisma/client";
 import { containsBadLanguage } from "@/lib/filterBadWords";
+import { logAudit } from "@/lib/audit";
 
 async function enrichProductWithVision(productId: string, imageUrl: string) {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -120,13 +121,22 @@ export async function createProduct(prevState: unknown, formData: FormData) {
       isFeatured: submission.value.isFeatured === true ? true : false,
       discountPercentage: submission.value.discountPercentage,
     },
+  },
   });
 
-  if (flattenUrls.length > 0) {
-    void enrichProductWithVision(created.id, flattenUrls[0]);
-  }
+await logAudit({
+  userId: user.id,
+  action: "CREATE",
+  targetType: "PRODUCT",
+  targetId: created.id,
+  metadata: { name: created.name },
+});
 
-  redirect("/store/dashboard/products");
+if (flattenUrls.length > 0) {
+  void enrichProductWithVision(created.id, flattenUrls[0]);
+}
+
+redirect("/store/dashboard/products");
 }
 
 export async function editProduct(prevState: any, formData: FormData) {
@@ -165,13 +175,22 @@ export async function editProduct(prevState: any, formData: FormData) {
       images: flattenUrls,
       discountPercentage: submission.value.discountPercentage,
     },
+  },
   });
 
-  if (flattenUrls.length > 0) {
-    void enrichProductWithVision(updated.id, flattenUrls[0]);
-  }
+await logAudit({
+  userId: user.id,
+  action: "UPDATE",
+  targetType: "PRODUCT",
+  targetId: updated.id,
+  metadata: { name: updated.name },
+});
 
-  redirect("/store/dashboard/products");
+if (flattenUrls.length > 0) {
+  void enrichProductWithVision(updated.id, flattenUrls[0]);
+}
+
+redirect("/store/dashboard/products");
 }
 
 export async function deleteProduct(formData: FormData) {
@@ -186,6 +205,13 @@ export async function deleteProduct(formData: FormData) {
     where: {
       id: formData.get("productId") as string,
     },
+  });
+
+  await logAudit({
+    userId: user.id,
+    action: "DELETE",
+    targetType: "PRODUCT",
+    targetId: formData.get("productId") as string,
   });
 
   redirect("/store/dashboard/products");

@@ -36,6 +36,7 @@ This document is a **feature overview for potential buyers** and lists only what
 - **Authenticated checkout**
   - Login/signup via Kinde.
   - Only authenticated users can proceed to checkout and place orders.
+  - Optional newsletter opt-in checkbox during checkout to join the marketing list.
 
 - **Shipping address capture**
   - Dedicated `/store/checkout` page that collects:
@@ -120,21 +121,27 @@ This document is a **feature overview for potential buyers** and lists only what
   - `/store/dashboard/returns` page to review `ReturnRequest` entries.
   - Approve/reject actions for pending requests.
 
-- **Email marketing & communications**
-  - Broadcast email tools using Resend from the admin dashboard.
-  - Rich composer with:
-    - Audience selection (all users, newsletter subscribers, or specific recipients).
+- **Email marketing & newsletter**
+  - Newsletter subscription system backed by a `NewsletterSubscriber` model linked to `User`.
+  - Multiple opt-in points:
+    - Newsletter signup section on the landing page.
+    - Footer newsletter form on storefront pages.
+    - Optional marketing opt-in checkbox during checkout.
+  - Broadcast email tools using Resend from the admin dashboard, with:
+    - Audience selection: all users, newsletter subscribers, or specific recipients.
     - Searchable multi‑select recipient picker with chips.
     - Optional uploaded banner image per campaign.
+  - Every broadcast email includes a one-click unsubscribe link taking users to a public `/newsletter/unsubscribe` page that updates their subscription status.
   - Transactional emails:
     - Order confirmation email after successful Stripe payment.
     - Delivery email template ready to hook into shipping/delivery events.
 
-- **Analytics**
+- **System health & analytics**
   - Admin analytics dashboard with:
     - Revenue charts based on successful payments.
     - Recent orders/sales list.
     - Basic KPIs (e.g. total revenue, order counts).
+  - Integration health widget on the main dashboard showing the status of key services (Database, Stripe, Shippo, Resend, Gemini) as healthy, misconfigured, or unhealthy, with simple explanations.
 
 ---
 
@@ -189,6 +196,26 @@ This document is a **feature overview for potential buyers** and lists only what
   - Meshy for 3D model generation.
   - Shippo for shipping rates, labels, and tracking.
   - Resend for transactional and marketing emails.
+
+---
+
+## 7. Reliability & Testing
+
+- **Error tracking**
+  - Sentry is integrated for client, server, and edge runtimes, capturing errors and performance traces when DSN environment variables are configured.
+
+- **Health checks**
+  - `/api/health` endpoint pings the database and returns a simple JSON status, used by admin smoke tests to verify core connectivity.
+
+- **End-to-end tests (Playwright)**
+  - Storefront smoke tests covering the landing page, navigation into the shop, and product detail views.
+  - Customer flow test that adds a product to the bag and proceeds to checkout (including the authentication redirect when not logged in).
+  - Admin/dashboard access control tests ensuring unauthenticated users are redirected away from protected routes and that the health endpoint responds as expected.
+
+- **Unit tests (Vitest)**
+  - Tests for currency formatting logic.
+  - Cart total and discount calculations via a dedicated `calculateCartTotal` helper.
+  - AI search `filterProducts` helper, including multi‑word queries and no‑match fallback behaviour.
 
 ---
 

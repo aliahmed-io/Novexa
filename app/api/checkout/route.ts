@@ -9,6 +9,12 @@ import { Stripe } from "stripe";
 export async function POST(req: Request) {
     try {
         const body = await req.json().catch(() => null);
+        console.log("Checkout initiated", JSON.stringify({
+            timestamp: new Date().toISOString(),
+            hasBody: !!body,
+            shippingService: body?.shippingServiceLevel
+        }));
+
         const {
             shippingName,
             shippingPhone,
@@ -21,7 +27,8 @@ export async function POST(req: Request) {
             shippingRateId,
             shippingCost,
             shippingServiceLevel,
-        } = (body || {}) as Record<string, string | number | undefined>;
+            subscribeToNewsletter,
+        } = (body || {}) as Record<string, string | number | boolean | undefined>;
 
         if (!shippingName || !shippingStreet1 || !shippingCity || !shippingPostalCode || !shippingCountry) {
             return NextResponse.json({ error: "Missing shipping information" }, { status: 400 });
@@ -69,6 +76,8 @@ export async function POST(req: Request) {
         }
 
         console.log("Cart items:", JSON.stringify(cart.items));
+
+        const wantsNewsletter = Boolean(subscribeToNewsletter);
 
         const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = cart.items.map((item) => ({
             price_data: {
@@ -126,6 +135,19 @@ export async function POST(req: Request) {
 
         const totalWithShipping = finalAmount + shippingCostNum;
 
+        // If user opted into marketing emails at checkout, subscribe them to the newsletter
+        if (wantsNewsletter && dbUser.email) {
+            try {
+                await prisma.newsletterSubscriber.upsert({
+                    where: { email: dbUser.email },
+                    update: { status: "subscribed", userId: dbUser.id },
+                    create: { email: dbUser.email, userId: dbUser.id, status: "subscribed" },
+                });
+            } catch (e) {
+                console.error("Failed to subscribe user to newsletter from checkout:", e);
+            }
+        }
+
         console.log("Creating order in DB...");
         // Create a pending order in the database
         const order = await prisma.order.create({
@@ -177,7 +199,11 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ url: session.url });
     } catch (error) {
-        console.error("Error in checkout API:", error);
+        console.error("Error in checkout API", JSON.stringify({
+            timestamp: new Date().toISOString(),
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+        }));
         return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
     }
 }
